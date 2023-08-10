@@ -1,0 +1,76 @@
+
+//Config
+Atributos:
+  - config_lines: Lista String;
+  - manga_name: String;
+  - base_link: String;
+  - drive_url: String;
+  - phone_dir: String;
+  - initial_chapter: Int;
+  - final_chapter: Int;
+  - img_dir: String;
+  - download_dir: String;
+  - files_dir: String;
+  - chapters_dir: String;
+  - download: Boolean;
+  - transfer: Boolean;
+  - final_dir: String;
+  - delete_chapters: Boolean;
+  - gui_initial_point: tupla de dois Int;
+Funções:
+  - load_configs(): void;
+  - create_default_configs_file(function callback): void;
+  - get_config(String config_name): String;
+  - find_line(String star_with, Array de String): Int;
+  - edit_config(String config_name, String value): void;
+  - save_configs(): void;
+  - get_configs_dict(): Dict(mudar);
+
+//Core
+Atributos:
+  (mudar) ela importa todas as configurações e define nela
+  - left_side: tupla de 4 Int;
+  - right_side: tupla de 4 Int;
+  - middle_of_left_side: tupla de 2 Int;
+  - middle_of_right_side: tupla de 2 Int;
+Funções: 
+  - verify_outcome(Lista com instância da Queue, RootWindow, InfoWindow e se houver SeleniumManager app_instances, String error, array com dois Int coords_to_close): void;
+  - download_chapters(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow inof_window): void;
+  - transfer(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow inof_window): void;
+
+//InternetSpeed(mudar para InternetTester)
+  - get_donwload_speed(): Float;
+  - get_upload_speed(): Float;
+  - get_ping_speed():  Float;(mudar para get_ping_delay)
+
+//main
+======================================================
+
+//PDFManager
+Funções:
+  - convert_to_pdf(String files_dir, String file): String(mudar);
+  - compile_chapter(String files_dir, String files, String chapters_dir, String chapter): String(mudar);
+
+//TimeControl
+Atributos:
+  - start_times: Lista de double.
+Funções:
+  - start(): void;
+  - end(): void;
+  - time_is_up(double time_out): Boolean;
+  - get_transfer_timeout(String transfer_type, String ou int info(mudar), String info_type, String average_size, Int tolerance_percentage): Int;
+  - identify_size_and_measuring_unit(String average_size_text): Tupla com Float e String;
+  - parse_to_MB(Float size, String measuring_unit): Float;
+
+//PendingFunctionsManager
+Funções:
+  - remove_pending_function(instancia da Queue queue, Array de Strings function): void;
+  - get_pending_functions(instancia da Queue queue): Array String;
+  - add_pending_function(instancia da Queue queue, Array de String e outros tipos);
+
+//ScreenManager
+Funções:
+  - locate(String img_name, Tupla de 4 Int region, Double confidence): Tupla de dois Int.
+  - wait_for(Float time_out, S)
+
+
