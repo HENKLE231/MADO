@@ -1,0 +1,62 @@
+
+//ConfigManager
+Atributos:
+  //Colocar todas as configurações dentro de um dict.
+  //Mangá
+  - manga_name: String;
+  - base_link: String;
+  - initial_chapter: Int;
+  - final_chapter: Int;
+  //Pastas
+  - img_dir: String;
+  - download_dir: String;
+  - files_dir: String;
+  - chapters_dir: String;
+  - final_dir: String;
+  //Extra
+  - delete_chapters: Boolean;
+  //GUI
+  - gui_initial_point: tupla de dois Int; // TODO TIRAR???
+  //TELA
+  - left_side: tupla de 4 Int;
+  - right_side: tupla de 4 Int;
+  - middle_of_left_side: tupla de 2 Int;
+  - middle_of_right_side: tupla de 2 Int;
+Funções:
+  - load_configs(): void;
+  - create_default_configs_file(function callback): void;
+  - get_config(String config_name): String;
+  - find_line(String star_with, Array de String): Int;
+  - edit_config(String config_name, String value): void;
+  - save_configs(): void;
+  - get_configs_dict(): Dict;(mudar p get_missing_configs)
+
+//Core
+//Não esquecer de converter o chapter e final chapter para int ou float
+Funções: 
+  - verify_outcome(Lista com instância da Queue, RootWindow, InfoWindow e se houver SeleniumManager app_instances, String error, array com dois Int coords_to_close): void;
+  - download_chapters(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
+  - transfer(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

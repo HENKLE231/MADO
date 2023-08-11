@@ -126,8 +126,11 @@ Funções:
   - get_gui_initial_point(): Tupla de 2 int;
   - get_current_gui_initial_point(String window_name): tupla de 2 int;
   - move_gui_to_initial_point(String window_name): void;
-  - interrrupt_process(instância da Queue queue, instância da RootWindow parent, Array de string info_lines, info_title)
-
+  - interrrupt_process(instância da Queue queue, instância da RootWindow parent, Array de string info_lines, String info_title): void;
+  - create_gui(instância da Queue queue, boolean download, boolean transfer): void;
+  - run(instância da Queue queue, instância da RootWindow parent, instância da InfoWindow info_window, boolean download, boolean transfer): void;
+  - create_main_gui(String first_window_name, instância da Queue queue): void;
+  -run_app(): void;
 
 ===========================================================
 
