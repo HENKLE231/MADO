@@ -130,7 +130,7 @@ Funções:
   - create_gui(instância da Queue queue, boolean download, boolean transfer): void;
   - run(instância da Queue queue, instância da RootWindow parent, instância da InfoWindow info_window, boolean download, boolean transfer): void;
   - create_main_gui(String first_window_name, instância da Queue queue): void;
-  -run_app(): void;
+  - run_app(): void;
 
 ===========================================================
 
