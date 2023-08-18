@@ -1,7 +1,3 @@
-
-# Core
-- Pedir para logar se desconectado do google drive.
-
 # verify_for_run
 - Verificar conexão com internet antes de iniciar o download.
 

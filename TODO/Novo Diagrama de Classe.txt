@@ -1,4 +1,4 @@
-
+(OK)
 //ConfigManager
 Atributos:
   //Colocar todas as configurações dentro de um dict.
@@ -8,14 +8,125 @@ Atributos:
   - initial_chapter: Int;
   - final_chapter: Int;
   //Pastas
+  - cwd: String;
+  - user_dir: String;
   - img_dir: String;
   - download_dir: String;
   - files_dir: String;
   - chapters_dir: String;
   - final_dir: String;
-  - user_dir: String;
-  - cwd: String;
-  //TELA
+  // Arquivo de configuração.
+  - config_file: String;
+Funções:
+  - load_configs(): void;
+  - edit_config(String config_name, String value): void;
+  - save_configs(): void;
+
+//Core
+//Não esquecer de converter o chapter e final chapter para int ou float
+Funções: 
+  - verify_outcome(Lista com instância da Queue, RootWindow, InfoWindow e se houver SeleniumManager app_instances, String error, array com dois Int coords_to_close): void;
+  - download_chapters(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
+  - transfer(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
+
+(OK)
+//InternetTester
+  - get_download_speed(): Float;
+  - get_upload_speed(): Float;
+  - get_ping_delay():  Float;
+
+===========================================================
+//GUI (Criar arquivo)
+
+(OK)
+//RootWindow(String title)
+Atributos:
+  - window: instancia TK;
+  - title: String;
+  - default_padx: int;
+  - default_pady: int;
+  - previous_window: String;
+  - current_window: String;
+  - app_windows: dict de tk.Frame;
+  - config_filds: dict de dicts com String display_frame, tk.label, tk.border, tk.entry e tk.var de cada campo.
+Funções:
+  - switch_frame(String next_window): void;
+  - save_config_changes(): void;
+  - update_all_fields(): void;
+  - highlight_fields(Dict de Strings configs_and_warnings): void;
+  - unhighlight(): void;
+
+//HomeFrame(instância da RootWindow parent, instancia de Queue queue, instância da InfoWindow info_window)
+Atributos:
+  - home_frame: tk.Frame;
+  - frame_title = String;
+  - subprocess_id: int;
+  - var_initial_chapter = tk.StringVar;
+  - var_final_chapter = tk.StringVar;
+  - WIDGETS DO TK;
+Funções:
+  - delete_downloaded_chapters(instancia da RootWindow parent, instancia de InfoWindow info_window): void(colocar descrição);
+  - verify_for_run(instancia da Queue): void; (mudar p verify_fields)
+  - interrrupt_process(instância da Queue queue, instância da RootWindow parent, Array de string info_lines, String info_title): void;
+  - run(instância da Queue queue, instância da RootWindow parent, instância da InfoWindow info_window, boolean download, boolean transfer): void;
+
+Atributos:
+Funções:
+
+(OK)
+//ConfigFrame(instancia da RootWindow)
+Atributos:
+  - var_manga_name: tk.StringVar;
+  - var_base_link: tk.StringVar;
+  - var_final_dir: tk.StringVar;
+  - var_imgs_dir: tk.StringVar;
+  - var_download_dir: tk.StringVar;
+  - var_files_dir: tk.StringVar;
+  - WIDGETS DO TK;
+Funções:
+  - select_dir(String title, tk.stringVar variable): void;
+  - reset_configs(instância da RootWindow parent): void;
+  - save_config_changes(): void;
+
+//InfoFrame(Instância da RootWindow parent, Instância da Queue queue)
+Atributos:
+  - num_info_lines: int;
+  - max_char_per_line: int;
+  - dynamic_button_action: String;
+  - dynamic_button_text: String;
+  - WIDGETS DO TK;
+Funções:
+  - execute_dynamic_button_action(instância da Queue queue, instância da RootWindow parent): void;
+  - set_dynamic_button_action(String action): void;
+  - show_info(Array de string new_info_lines, String info_title): void;
+  - update_last_lines(Array de string info_lines, int number_of_lines_to_delete): void;
+  - get_info(): Array de Strings;
+  - clear_info(): void;
+
+===========================================================
+(OK)
+//TextFormatter
+Funções:
+  - get_last_incident_index(String text, String character): int;
+  - get_index_of_what_comes_last(String text, Array de string characters): int;
+  - format_text(Array de String lines, int max_length): Array de Strings;
+
+//Main
+//Importar telas
+
+//PDFManager
+Funções:
+  - convert_to_pdf(String files_dir, String file): String(mudar);
+  - compile_chapter(String files_dir, String files, String chapters_dir, String chapter): String(mudar);
+
+//FunctionsManager
+Funções:
+  - remove(instancia da Queue queue, Array de Strings function): void;
+  - get(instancia da Queue queue): Array String;
+  - add(instancia da Queue queue, Array de String e outros tipos);
+
+//ScreenManager (verificar necessidade de funções de reconhecimento de tela)==============
+Atributos:
   - left_side: tupla de 4 Int;
   - right_side: tupla de 4 Int;
   - middle_of_left_side: tupla de 2 Int;
@@ -27,126 +138,6 @@ Atributos:
   - screen_y: Int;
   - work_area_x: Int;
   - work_area_y: Int;
-Funções:
-  - load_configs(): void;
-  - create_default_configs_file(function callback): void;
-  - get_config(String config_name): String;
-  - find_line(String star_with, Array de String): Int;
-  - edit_config(String config_name, String value): void;
-  - save_configs(): void;
-  - get_configs_dict(): Dict;(mudar p get_missing_configs)
-
-//Core
-//Não esquecer de converter o chapter e final chapter para int ou float
-Funções: 
-  - verify_outcome(Lista com instância da Queue, RootWindow, InfoWindow e se houver SeleniumManager app_instances, String error, array com dois Int coords_to_close): void;
-  - download_chapters(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
-  - transfer(instacia da Queue queue, instancia da RootWindow root_window, instancida da InfoWindow info_window): void;
-
-//InternetSpeed(mudar para InternetTester)
-  - get_download_speed(): Float;
-  - get_upload_speed(): Float;
-  - get_ping_speed():  Float;(mudar para get_ping_delay)
-
-===========================================================
-//AppWindows (Criar arquivo)
-
-//RootWindow(String title)
-Atributos:
-  - window: instancia TK;
-  - title: String;
-  - subprocess_id: int;
-  - default_padx: int;
-  - default_pady: int;
-  - previous_window: String;
-  - current_window: String;
-  - app_windows: dict de tk.Frame;
-  - widgets_with_warnings: dict de dicts com elementos tk.
-  - all_config_widgets: dict com tk. (var);
-Funções:
-  - switch_to_window(String next_window): void;
-  - update_all_fields(): void;
-  - highlight_fields(Dict de Strings wrong_configs): void;
-  - unhighlight(): void;
-
-//HomeWindow(instância da RootWindow parent, instancia de Queue queue, instância da InfoWindow info_window)
-Atributos:
-  - window: tk.Frame;
-  - var_initial_chapter = tk.StringVar;
-  - var_final_chapter = tk.StringVar;
-  - var_final_dir = tk.StringVar;
-  - WIDGETS DO TK;
-Funções:
-  - manage_transfer_options(): void;
-  - save_config_changes(): void;
-  - delete_downloaded_chapters(instancia da RootWindow parent, instancia de InfoWindow info_window): void(colocar descrição);
-  - verify_for_run(instancia da Queue): void; (mudar p verify_fields)
-
-//ConfigWindow(instancia da RootWindow)
-Atributos:
-  - var_manga_name: tk.StringVar;
-  - var_base_link: tk.StringVar;
-  - var_drive_url: tk.StringVar;
-  - var_phone_dir: tk.StringVar;
-  - var_pc_dir: tk.StringVar;
-  - var_imgs_dir: tk.StringVar;
-  - var_download_dir: tk.StringVar;
-  - var_files_dir: tk.StringVar;
-  - var_chapters_dir: tk.StringVar;
-  - var_final_dir: tk.StringVar; (ver se não é igual ao chapters_dir)
-  - WIDGETS DO TK;
-Funções:
-  - select_dir(String title, tk.stringVar variable): void;
-  - reset_configs(instância da RootWindow parent): void;
-  - save_config_changes(): void;
-  - save_and_switch_to_home(Instância da RootWindow): void;
-
-//InfoWindow(Instância da RootWindow parent, Instância da Queue queue)
-Atributos:
-  - num_info_lines: int;
-  - max_char_per_line: int;
-  - dynamic_button_action: String;
-  - dynamic_button_text: String;
-  - WIDGETS DO TK;
-Funções:
-  - interrupt_process(Instancia da Queue, instância da RootWindow parent, Array de String info_lines, String info_title): void(Só redireciona para func global);
-  - execute_dynamic_button_action(instância da Queue queue, instância da RootWindow parent): void;
-  - set_dynamic_button_action(String action): void;
-  - clear_info_and_go_back(instância da RootWindow parent): void;
-  - show_info(Array de string new_info_lines, String info_title): void;
-  - update_last_lines(Array de string info_lines, int number_of_lines_to_delete): void;
-  - get_info(): Array de Strings;
-  - clear_info(): void;
-
-//TextFormater (Criar)
-Funções:
-  - get_last_incident_index(String text, String character): int;
-  - get_index_of_what_comes_last(String text, Array de string characters): int;
-  - format_text(Array de String lines, int max_length): Array de Strings;
-===========================================================
-
-//Main
-//Importar telas
-  - interrrupt_process(instância da Queue queue, instância da RootWindow parent, Array de string info_lines, String info_title): void;
-  - create_gui(instância da Queue queue, boolean download, boolean transfer): void;
-  - run(instância da Queue queue, instância da RootWindow parent, instância da InfoWindow info_window, boolean download, boolean transfer): void;
-  - create_main_gui(String first_window_name, instância da Queue queue): void;
-  - run_app(): void;
-
-//PDFManager
-Funções:
-  - convert_to_pdf(String files_dir, String file): String(mudar);
-  - compile_chapter(String files_dir, String files, String chapters_dir, String chapter): String(mudar);
-
-//PendingFunctionsManager
-Funções:
-  - remove_pending_function(instancia da Queue queue, Array de Strings function): void;
-  - get_pending_functions(instancia da Queue queue): Array String;
-  - add_pending_function(instancia da Queue queue, Array de String e outros tipos);
-
-//ScreenManager (verificar necessidade de funções de reconhecimento de tela)==============
-Atributos:
-  // Importar configs
   - pause: Float;
 Funções:
   - locate(String img_name, Tupla de 4 Int region, Double confidence): Tupla de dois Int.
@@ -209,18 +200,18 @@ Funções:
   - move_files(String current_dir, String new_dir, String pattern): void;
   - file_with_pattern_exists(String path, String pattern): boolean;
   - path_exists(String path): boolean;
-  - how_many_files(String path, String pattern): int;
+  - count_files(String path, Array de Strings patterns, Int to_meet): int;
   - copy_files(String current_dir, String new_dir, String pattern): void;
 
+(OK)
 //TimeManager
 Atributos:
-  - start_times: Lista de double.
+  - start_times: Lista de Int.
 Funções:
   - start(): void;
   - end(): void;
   - time_is_up(double time_out): Boolean;
-  - get_transfer_timeout(String transfer_type, String ou int info(mudar), String info_type, String average_size, Int tolerance_percentage): Int;
-  - identify_size_and_measuring_unit(String average_size_text): Tupla com Float e String;
+  - get_download_time_estimate(Int amount, String average_size, String measuring_unit, Int tolerance_percentage): Int;
   - parse_to_MB(Float size, String measuring_unit): Float;
 
 

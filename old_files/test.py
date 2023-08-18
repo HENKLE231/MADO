@@ -1,11 +1,11 @@
 import psutil as ps
 import pandas as pd
 from datetime import date
-from ScreenManager import ScreenManipulator as ScreenMa
+# from ScreenManager import ScreenManipulator as ScreenMa
 
 
-screen_ma = ScreenMa('imgs/', 0.3)
-print(screen_ma.locate('need-to-log-in.png'))
+# screen_ma = ScreenMa('imgs/', 0.3)
+print('1.2'.replace('.', '').isnumeric())
 
 
 

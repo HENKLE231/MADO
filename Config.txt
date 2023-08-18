@@ -1,0 +1,11 @@
+manga_name=Martial Peak
+base_link=https://manhuaplus.com/manga/martial-peak/chapter-500/
+initial_chapter=500
+final_chapter=500
+cwd=C:\Users\Henrique\Desktop\. Python\MADO
+user_dir=C:\Users\Henrique
+imgs_dir=C:\Users\Henrique\Desktop\. Python\MADO\imgs
+download_dir=C:\Users\Henrique\Downloads
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files_for_chapters
+final_dir=C:/Users/Henrique/Desktop/Excluir
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
