@@ -19,7 +19,6 @@ class DownloadManager:
         self.base_link = config_ma.config_list['base_link']
         self.chapter = int(config_ma.config_list['initial_chapter'])
         self.final_chapter = int(config_ma.config_list['final_chapter'])
-        self.imgs_dir = config_ma.config_list['imgs_dir']
         self.download_dir = config_ma.config_list['download_dir']
         self.files_dir = config_ma.config_list['files_dir']
         self.final_dir = config_ma.config_list['final_dir']
@@ -71,6 +70,10 @@ class DownloadManager:
         # Salva identificador do processo
         queue.put(['save_secondary_process_id', SystemManager.get_current_process_id()])
 
+        # Limpa pasta de arquivos desnecessários.
+        unnecessary_files = system_ma.find_files(self.files_dir, [''])
+        system_ma.delete(unnecessary_files)
+
         # Informa o inicio do processo.
         queue.put(['show_info', ['Iniciou.'], 'Download'])
 
@@ -112,14 +115,15 @@ class DownloadManager:
             if there_is_no_chapter:
                 there_is_no_chapter = False
 
-            try:
-                self.next_page_link = selenium_ma.get_next_page_link(next_page_button_location)
-            except Exception as error:
-                error = str(error)
-                if 'Unable to locate element' in error:
-                    error = f'Não foi possivel encontrar o botão para proxima página.'
-                selenium_ma.close_nav()
-                self.end_process(queue, error)
+            if self.chapter != self.final_chapter:
+                try:
+                    self.next_page_link = selenium_ma.get_next_page_link(self.next_page_button_location)
+                except Exception as error:
+                    error = str(error)
+                    if 'Unable to locate element' in error:
+                        error = f'Não foi possivel encontrar o botão para proxima página.'
+                    selenium_ma.close_nav()
+                    self.end_process(queue, error)
 
             # Fecha o navegador.
             selenium_ma.close_nav()
