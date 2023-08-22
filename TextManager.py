@@ -1,10 +1,10 @@
-class TextFormatter:
+class TextManager:
     @staticmethod
     def get_last_incident_index(text, character):
         """
             :param text: (String) Texto para análise.
             :param character: (String) Caractere para ser encontrado.
-            :return: (Int) Índice de última incidencia do caractere.
+            :return: (Int) Índice de última incidência do caractere.
         """
         last_incidence = None
         i = len(text) - 1
@@ -24,9 +24,10 @@ class TextFormatter:
 
         # Seleciona dos caracteres passados apenas os contidos no texto.
         characters = [char for char in characters if char in text]
+
         last_char_index = None
         for char in characters:
-            # Verifica a ultima incidencia.
+            # Verifica a última incidência.
             index = self.get_last_incident_index(text, char)
 
             # Compara com o valor anterior, se for maior salva.
@@ -38,9 +39,9 @@ class TextFormatter:
 
     def format_text(self, lines, max_length):
         """
-            :param lines: (Array) Lista com as linhas de texto a serem formatadas.
+            :param lines: (Array de Strings) Lista com as linhas de texto a serem formatadas.
             :param max_length: (Int) Número máximo de caracteres por linha.
-            :return: (Array) Lista de linhas respeitando o comprimento máximo.
+            :return: (Array de Strings) Lista de linhas respeitando o comprimento máximo.
         """
         formatted_lines = []
         there_were_changes = True
@@ -50,6 +51,7 @@ class TextFormatter:
                 line = line.strip()
                 if len(line) > max_length:
                     there_were_changes = True
+
                     # Verifica onde pode cortar a linha
                     divider_index = self.get_index_of_what_comes_last(line[:max_length], [' ', ',', '.'])
                     if divider_index:
@@ -58,6 +60,7 @@ class TextFormatter:
                     else:
                         piece_that_fit = line[:max_length]
                         rest = line[max_length:]
+
                     # Adiciona partes cortadas
                     formatted_lines.append(piece_that_fit.strip())
                     rest = rest.strip()
@@ -75,9 +78,27 @@ class TextFormatter:
     def get_last_piece_of_path(path):
         """
             :param path: (String) Caminho completo para a pasta.
-            :return: (String) Nome da pasta no final do caminho.
+            :return: (String) Pedaço final do caminho.
         """
         seps = [r'\ '.strip(), '/']
         for sep in seps:
             if sep in path:
                 return path.split(sep)[-1]
+
+    @staticmethod
+    def find_patterns(text, patterns, to_meet=1):
+        """
+            :param text: (String) Texto para análise.
+            :param patterns: (Array de Strings) Padrões.
+            :param to_meet: (Int) Quantidade de padrões necessários no mesmo arquivo.
+            :return: (Boolean) True se atendeu a quantidade minima de padrões.
+        """
+        pattern_match = 0
+
+        # Procura por padrões.
+        for pattern in patterns:
+            if pattern in text:
+                pattern_match += 1
+
+        # Verifica se atende aos requisitos.
+        return pattern_match >= to_meet

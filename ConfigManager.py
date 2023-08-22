@@ -5,6 +5,7 @@ import os
 
 class ConfigManager:
     def __init__(self):
+        # Instancia classe necessária.
         system_ma = SystemMa()
 
         self.config_list = {
@@ -51,6 +52,14 @@ class ConfigManager:
         except FileNotFoundError:
             self.save_configs()
 
+    def edit_config(self, config_name, value):
+        """
+            :param config_name: (String) Nome da configuração.
+            :param value: (String) Valor.
+            Edita valor da variável na instância.
+        """
+        self.config_list[config_name] = value
+
     def save_configs(self):
         """
             Salva configurações.
@@ -58,11 +67,3 @@ class ConfigManager:
         with open(self.config_list['config_file'], 'w') as config_txt:
             for config_key, config in self.config_list.items():
                 config_txt.write('{}={}\n'.format(config_key, config))
-
-    def edit_config(self, config_name, value):
-        """
-            :param config_name: (String) Nome da configuração.
-            :param value: (String) Configuração.
-            Edita valor da variável na instância.
-        """
-        self.config_list[config_name] = value

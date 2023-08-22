@@ -6,7 +6,7 @@ from functools import partial
 from multiprocessing import Process, Queue
 from ConfigManager import ConfigManager
 from SystemManager import SystemManager
-from TextFormatter import TextFormatter
+from TextManager import TextManager
 from DownloadManager import DownloadManager
 
 
@@ -25,7 +25,7 @@ class GUI:
         self.app_frames = {}
         self.config_fields = {}
 
-        # =======================================================================================================
+        # ==============================================================================================================
         # HomeFrame.
         # Variáveis.
         self.home_frame = tk.Frame(self.window)
@@ -72,7 +72,7 @@ class GUI:
         command = partial(self.switch_frame, 'config_frame')
         self.button_config = tk.Button(self.home_frame, text='Configurações', command=command)
         self.button_config.grid(row=3, column=1, padx=3, pady=3, sticky='nswe')
-        command = partial(self.verify_for_run)
+        command = partial(self.verify_fields)
         self.button_run = tk.Button(self.home_frame, text='Baixar', command=command)
         self.button_run.grid(row=3, column=2, padx=3, pady=3, sticky='nswe')
 
@@ -95,7 +95,7 @@ class GUI:
         # Adiciona à lista de janelas existentes.
         self.app_frames['home_frame'] = self.home_frame
 
-        # =======================================================================================================
+        # ==============================================================================================================
         # ConfigFrame.
         # Variáveis.
         self.config_frame = tk.Frame(self.window)
@@ -398,7 +398,7 @@ class GUI:
         # Adiciona às janelas existentes.
         self.app_frames['config_frame'] = self.config_frame
 
-        # =======================================================================================================
+        # ==============================================================================================================
         # InfoFrame.
         # Variáveis.
         self.info_frame = tk.Frame(self.window)
@@ -429,18 +429,17 @@ class GUI:
         # Exibe tela inicial
         self.switch_frame('home_frame')
 
-        # =======================================================================================================
+        # ==============================================================================================================
         # Carrega configurações.
         self.update_all_fields()
 
-    # =======================================================================================================
+    # ==================================================================================================================
     # Funções gerais.
     def switch_frame(self, next_frame):
         """
             :param next_frame: (String) Nome do próximo frame.
             Exibe o frame requerido.
         """
-
         # Salva o nome do frame atual caso seja necessário voltar.
         self.previous_frame = self.current_frame
 
@@ -458,7 +457,6 @@ class GUI:
         """
             Salva variáveis de configuração.
         """
-
         # Instancia a classe de Configurações.
         config_ma = ConfigManager()
 
@@ -467,10 +465,14 @@ class GUI:
             # Edita a configuração.
             config_ma.edit_config(config_name, widgets['var'].get())
 
-        # Salva as configurações.
+        # Salva.
         config_ma.save_configs()
 
     def save_last_link(self, link):
+        """
+            :param link: (String) Link do último capítulo acessado.
+            Salva o link do último capítulo acessado.
+        """
         # Edita o campo.
         self.config_fields['last_link']['var'].set(link)
 
@@ -486,6 +488,7 @@ class GUI:
         target_frame = 'home_frame'
         target_config_name = ''
 
+        # Varre avisos.
         for config_name, warning in configs_and_warnings.items():
             # Seleciona campo.
             field = self.config_fields[config_name]
@@ -546,7 +549,7 @@ class GUI:
     # Funções do HomeFrame.
     def delete_downloaded_chapters(self):
         """
-            Deleta arquivos da pasta final que correspondem ao nome do mangá.
+            Deleta arquivos da pasta final que correspondem ao nome e formato dos arquivos do mangá.
         """
         # Salva informações atuais.
         self.save_config_changes()
@@ -569,7 +572,7 @@ class GUI:
         # Tira destaques dos campos.
         self.unhighlight()
 
-        # Destaca campos.
+        # Destaca campos se necessário.
         if configs_and_warnings:
             self.highlight_fields(configs_and_warnings)
             return
@@ -600,7 +603,7 @@ class GUI:
     def save_secondary_process_id(self, process_id):
         """
             :param process_id: (Int) Identificador do processo.
-            Salva o PID..
+            Salva Identificador do processo.
         """
         self.secondary_process_id = process_id
 
@@ -610,7 +613,7 @@ class GUI:
         """
         SystemManager.end_process('pid', self.secondary_process_id)
 
-    def verify_for_run(self):
+    def verify_fields(self):
         """
             Verifica se há as informações necessárias para realizar os downloads.
         """
@@ -666,7 +669,7 @@ class GUI:
         elif not system_ma.path_exist(config_ma.config_list['download_dir']):
             configs_and_warnings['download_dir'] = 'Informe uma pasta valida.'
 
-        # Pasta de para edição de arquivos.
+        # Pasta de edição de arquivos.
         if not config_ma.config_list['files_dir']:
             configs_and_warnings['files_dir'] = 'Informe uma pasta para edição de imagens.'
         elif not system_ma.path_exist(config_ma.config_list['files_dir']):
@@ -691,8 +694,8 @@ class GUI:
         # Tira o destaque dos campos.
         self.unhighlight()
 
+        # Se necessário, destaca campos com erro.
         if configs_and_warnings:
-            # Destaca campos com erro.
             self.highlight_fields(configs_and_warnings)
             return
 
@@ -703,8 +706,7 @@ class GUI:
         """
             Começa a baixar o mangá.
         """
-        # Instancia classes necessárias.
-        system_ma = SystemManager()
+        # Instancia classe necessária.
         download_ma = DownloadManager()
 
         # Muda função do botão dinâmico para cancelar.
@@ -715,12 +717,12 @@ class GUI:
 
         # Instancia Queue para comunicação entre processos.
         queue = Queue()
-        download_process = Process(target=download_ma.start_download, args=(queue, ))
+        download_process = Process(target=download_ma.start_download, args=(queue,))
 
         # Inicia download.
         download_process.start()
 
-        # Verifica constantemente mensagens do outro processo.
+        # Verifica constantemente a comunicação com o outro processo.
         while True:
             function = queue.get()
             func_name = function[0]
@@ -753,7 +755,7 @@ class GUI:
                     break
 
         # Muda função do botão dinâmico para voltar à home.
-        self.set_dynamic_button_action('go_back')
+        self.set_dynamic_button_action('go_home')
 
     # =======================================================================================================
     # Funções do ConfigFrame.
@@ -771,7 +773,8 @@ class GUI:
         if new_dir:
             variable.set(str(Path(new_dir)))
 
-    def clear_var(self, variable):
+    @staticmethod
+    def clear_var(variable):
         """
             :param variable: (tk.StringVar) Variável a ser limpa.
             Limpa variavel.
@@ -780,13 +783,13 @@ class GUI:
 
     def copy_last_link_to_base_link(self):
         """
-            Copia o último link para o link base.
+            Sobreescreve o link base com o último link acessado.
         """
         self.config_fields['base_link']['var'].set(self.config_fields['last_link']['var'].get())
 
     def reset_configs(self):
         """
-            Retorna o programa às suas configurações iniciais.
+            Excluí arquivo de configurações e retorna às configurações iniciais.
         """
         config_ma = ConfigManager()
         system_ma = SystemManager()
@@ -800,15 +803,18 @@ class GUI:
         """
             Executa a função do botão dinâmico.
         """
-        if self.dynamic_button_action == 'go_back':
-            # Limpa campo de informações e volta ao frame anterior.
+        if self.dynamic_button_action == 'go_home':
+            # Limpa campo de informações e volta a home.
             self.clear_info()
-            self.switch_frame(self.previous_frame)
+            self.switch_frame('home_frame')
         elif self.dynamic_button_action == 'cancel':
+            # TODO ATUALIZAR, SALVANDO NOME DA JANELA ABERTA E MANDANDO FECHAR
             # Mata processo secundário.
             self.kill_secondary_process()
+            # Informa do cancelamento.
+            self.show_info(['Processo cancelado.'], 'Cancelado')
             # Muda função do botão dinâmico para voltar à home.
-            self.set_dynamic_button_action('go_back')
+            self.set_dynamic_button_action('go_home')
 
     def set_dynamic_button_action(self, action):
         """
@@ -817,8 +823,8 @@ class GUI:
         if action == 'cancel':
             self.dynamic_button_action = 'cancel'
             self.dynamic_button['text'] = 'Cancelar'
-        elif action == 'go_back':
-            self.dynamic_button_action = 'go_back'
+        elif action == 'go_home':
+            self.dynamic_button_action = 'go_home'
             self.dynamic_button['text'] = 'Voltar'
 
     def show_info(self, info_lines, info_title=''):
@@ -827,8 +833,8 @@ class GUI:
             :param info_title: (String) Título a ser exibido na janela de informações.
             Apresenta informações no frame de informações.
         """
-        # Instancia classes necessárias.
-        text_formatter = TextFormatter()
+        # Instancia classe necessária.
+        text_formatter = TextManager()
 
         # Atribui título.
         if info_title:
@@ -849,6 +855,8 @@ class GUI:
                 else:
                     self.scrolled_textbox.insert('end', f'{line}')
             self.scrolled_textbox['state'] = 'disabled'
+
+            # Movimenta scrool para baixo.
             self.scrolled_textbox.yview_scroll(len(info_lines) * 26, 'pixels')
 
         # Atualiza tela.
@@ -856,7 +864,7 @@ class GUI:
 
     def update_last_lines(self, info_lines, lines_to_update=1):
         """
-            :param info_lines: (Array) Lista de linhas de texto para substituir a última linha apresentada.
+            :param info_lines: (Array de Strings) Lista de linhas a serem apresentadas.
             :param lines_to_update: (Int) Número de linhas que serão atualizadas.
             Substitui últimas linhas exibidas.
         """
@@ -864,10 +872,10 @@ class GUI:
         # Verifica o número de linhas exibidas.
         num_lines = len(self.get_info())
 
-        # Define índice inical de exclusão.
+        # Define índice inicial de exclusão.
         initial_delete_index = num_lines - lines_to_update
 
-        # Verifica se podem ser excluidas tantas linhas quanto solicitado.
+        # Verifica se podem ser excluidas tantas linhas quanto solicitados.
         if initial_delete_index < 1:
             initial_delete_index = 1
 
@@ -881,7 +889,7 @@ class GUI:
 
     def get_info(self):
         """
-            :return: (Array) Lista com as linhas exibidas.
+            :return: (Array de Strings) Lista com as linhas exibidas.
         """
         info_lines = [line for line in self.scrolled_textbox.get("1.0", 'end').split('\n')]
         if not info_lines[0]:

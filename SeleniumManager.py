@@ -19,6 +19,7 @@ class SeleniumManager:
             :param size_and_position: (Tuple) Tupla com largura, altura, e coordenadas do ponto inicial da janela.
             Abre o navegador automatizado.
         """
+        # Configura opções.
         self.options = webdriver.EdgeOptions()
         self.options.page_load_strategy = page_load_strategy
         self.options.add_argument("inprivate")
@@ -59,19 +60,13 @@ class SeleniumManager:
         """
         self.nav.get(link)
 
-    def get_nav_title(self):
-        """
-            :return: (String) Titulo da página.
-        """
-        return self.nav.title
-
     def get_imgs_src(self, manga_name, chapter, frames_location, imgs_location):
         """
             :param manga_name: (String) Nome do mangá.
             :param chapter: (Int) Número do capítulo.
-            :param frames_location: (Dict de Strings) Pelo que procurara e o valor.
-            :param imgs_location: (Dict de Strings) Pelo que procurara e o valor.
-            :return: (String) Mensagem de erro se necessário senão vazio.
+            :param frames_location: (Dict de Strings) Pelo que procurará e o valor.
+            :param imgs_location: (Dict de Strings) Pelo que procurará e o valor.
+            Define os nomes e salva as fontes das imagens.
         """
         img_num = 0
         scopes = [self.nav]
@@ -99,7 +94,7 @@ class SeleniumManager:
 
     def get_next_page_link(self, next_page_button_location):
         """
-            :param next_page_button_location: (Dict de Strings) Pelo que procurara e o valor.
+            :param next_page_button_location: (Dict de Strings) Pelo que procurará e o valor.
             :return: (String) Link do próximo capítulo.
         """
         next_page_button = self.nav.find_element(next_page_button_location['by'], next_page_button_location['value'])
@@ -108,7 +103,7 @@ class SeleniumManager:
     def execute_script(self, script):
         """
             :param script: (Array de Strings) Lista com comandos de JavaScript.
-            Executa o comando js no navegador.
+            Executa os comandos em JavaScript no navegador.
         """
         for command in script:
             self.nav.execute_script(command)
@@ -117,7 +112,6 @@ class SeleniumManager:
         """
             :param img_name: (String) Nome da imagem.
             :param link: (String) Endereço da imagem.
-            :return: (String) Mensagem de erro se necessário senão vazio.
             Baixa a imagem.
         """
         # Edita o script de download.
@@ -133,10 +127,10 @@ class SeleniumManager:
     def get_percentage_of_downloaded_files(self, download_dir):
         """
             :param download_dir: (String) Caminho para pasta de downloads.
-            :return: (Float) Porcentagem de downloads completos.
-            Informa procentagem de downloads completos e marca as imagens como baixadas.
+            :return: (Float) Porcentagem de arquivos baixados.
+            Informa procentagem de arquivos baixados e salva como baixadas.
         """
-        # Verifica número total de imagens a serem baixadas.
+        # Verifica número total de arquivos a serem baixados.
         num_imgs = len(self.imgs_info)
         num_completed_downloads = 0
 
@@ -145,6 +139,7 @@ class SeleniumManager:
             img_name, link, downloaded = img_info
             if os.path.isfile(os.path.join(download_dir, img_name)):
                 num_completed_downloads += 1
+                # Salva como baixado.
                 if not downloaded:
                     self.imgs_info[i][2] = True
 

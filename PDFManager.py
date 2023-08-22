@@ -1,7 +1,7 @@
 import pypdf as pyf
 from pathlib import Path
 from PIL import Image
-from TextFormatter import TextFormatter
+from TextManager import TextManager
 import os
 
 
@@ -31,7 +31,7 @@ class PDFManager:
         img_converted = img.convert('RGB')
 
         # Salva e fecha.
-        img_name = TextFormatter.get_last_piece_of_path(file)
+        img_name = TextManager.get_last_piece_of_path(file)
         pdf_name = r'{}/{}.pdf'.format(file[:file.index(img_name)], img_name[:img_name.index('.')])
         pdf_name = str(Path(pdf_name))
         img_converted.save(pdf_name)
@@ -52,10 +52,12 @@ class PDFManager:
         # Cria um pdf
         pdf_chapter = pyf.PdfWriter()
 
+        # Adiciona imagens.
         for file in chapter_files:
             pdf_pages = pyf.PdfReader(file)
             for page in pdf_pages.pages:
                 pdf_chapter.add_page(page)
 
+        # Salva arquivo final.
         with Path(f'{final_dir}/Martial Peak - {chapter}.pdf').open(mode='wb') as pdf_file:
             pdf_chapter.write(pdf_file)

@@ -1,5 +1,5 @@
 from win32api import GetSystemMetrics
-from TextFormatter import TextFormatter
+from TextManager import TextManager
 from pathlib import Path
 import signal
 import os
@@ -13,17 +13,12 @@ class SystemManager:
         self.user_dir = self.cwd[:self.cwd.index(r'\ '.strip(), self.cwd.index('Users')+6)]
 
     @staticmethod
-    def end_process(target='pid', pid=0):
+    def end_process(pid):
         """
-            :param target: (String) Sendo 'current' para processo atual ou
-            'pid' se informar o identificador do processo.
-            :param pid: (Int) identificador do processo (PID).
+            :param pid: (Int) Identificador do processo (PID).
             Encerra o Processo.
         """
-        if target == 'current':
-            os.kill(os.getpid(), signal.SIGTERM)
-        elif target == 'pid' and pid:
-            os.kill(pid, signal.SIGTERM)
+        os.kill(pid, signal.SIGTERM)
 
     @staticmethod
     def get_current_process_id():
@@ -34,24 +29,21 @@ class SystemManager:
         return os.getpid()
 
     @staticmethod
-    def find_files(dir_path, patterns, to_meet=1):
+    def find_files(path, patterns, to_meet=1):
         """
-            :param dir_path: (String) Caminho de uma pasta.
+            :param path: (String) Caminho de uma pasta.
             :param patterns: (Array de Strings) Padrões.
             :param to_meet: (Int) Quantidade de padrões necessários no mesmo arquivo.
             :return: (Array de Strings) Caminhos dos arquivos.
         """
         files_paths = []
-        files = os.listdir(dir_path)
-        pattern_match = 0
+        files = os.listdir(path)
         # Varre arquivos procurando por padrões.
         for file in files:
-            for pattern in patterns:
-                if pattern in file:
-                    pattern_match += 1
-            if pattern_match >= to_meet:
-                files_paths.append(str(Path(r'{}\{}'.format(dir_path, file))))
-            pattern_match = 0
+            # Verifica se atende aos padrões.
+            if TextManager.find_patterns(file, patterns, to_meet):
+                # Salva caminho.
+                files_paths.append(str(Path(r'{}\{}'.format(path, file))))
         return files_paths
 
     @staticmethod
@@ -60,22 +52,25 @@ class SystemManager:
             :param paths: (Array de Strings) Caminhos para pastas ou arquivos.
             Exclui pastas e arquivos.
         """
-        # Deleta
+        # Varre caminhos.
         for path in paths:
-            path = str(Path(path))
+            # Verifica exixtência.
             if os.path.exists(path):
+                # Excluí.
                 os.remove(path)
 
     @staticmethod
     def move_files(files, new_dir):
         """
             :param files: (Array de Strings) Caminhos dos arquivos.
-            :param new_dir: (String) Caminho da pasta para onde os arquivo será transferido.
+            :param new_dir: (String) Caminho da pasta de destino.
             Move arquivos para pasta desejada.
         """
+        # Varre arquivos.
         for file in files:
-            file_name = TextFormatter.get_last_piece_of_path(file)
+            file_name = TextManager.get_last_piece_of_path(file)
             new_file_location = str(Path(r'{}/{}'.format(new_dir, file_name)))
+            # Transfere.
             os.rename(file, new_file_location)
 
     @staticmethod
@@ -94,15 +89,13 @@ class SystemManager:
             :param to_meet: (Int) Quantidade de padrões necessários no mesmo arquivo.
             :return: (Int) Quantidade de arquivos no padrão.
         """
-        files = os.listdir(path)
         num_files = 0
-        pattern_match = 0
+        files = os.listdir(path)
+
         # Varre arquivos procurando por padrões.
         for file in files:
-            for pattern in patterns:
-                if pattern in file:
-                    pattern_match += 1
-            if pattern_match >= to_meet:
+            # Verifica se atende aos padrões.
+            if TextManager.find_patterns(file, patterns, to_meet):
+                # Incrementa numero de arquivos.
                 num_files += 1
-            pattern_match = 0
         return num_files

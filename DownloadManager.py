@@ -77,13 +77,12 @@ class DownloadManager:
         unmoved_images = system_ma.find_files(self.download_dir, [f'{self.manga_name}_', '.jpg'], 2)
         system_ma.delete(unmoved_images)
 
-        # Configurações.
+        # Informa o progresso.
+        queue.put(['show_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
+
         there_is_no_chapter = True
         num_chapters = self.final_chapter - self.chapter + 1
         current_chapter_index = 0
-
-        # Informa o progresso.
-        queue.put(['show_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
 
         while self.chapter <= self.final_chapter:
             # Abre navegador.
@@ -108,10 +107,11 @@ class DownloadManager:
                     selenium_ma.close_nav()
                     break
 
+            # Salva existência capitulo.
             if there_is_no_chapter:
                 there_is_no_chapter = False
 
-            # Avisa do progresso.
+            # Informa o progresso.
             completion_percentage = (current_chapter_index + 1) / num_chapters
             queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
 
@@ -133,6 +133,7 @@ class DownloadManager:
             # Fecha o navegador.
             selenium_ma.close_nav()
 
+            # Itera.
             self.chapter += 1
             current_chapter_index += 1
 
@@ -146,7 +147,7 @@ class DownloadManager:
         # Abre navegador.
         selenium_ma.open_nav(size_and_position=size_and_position)
 
-        # Avisa do progresso.
+        # Informa o progresso.
         queue.put(['show_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
 
         completion_percentage = 0
@@ -167,7 +168,7 @@ class DownloadManager:
                 except Exception as error:
                     self.end_process(queue, str(error))
 
-                # Informa do progresso.
+                # Informa o progresso.
                 completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.download_dir)
                 queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
 
@@ -180,25 +181,24 @@ class DownloadManager:
         # Fecha o navegador.
         selenium_ma.close_nav()
 
-        # Informa do progresso.
+        # Informa o progresso.
         queue.put(['show_info', ['Downloads concluídos.']])
 
         # Move as imagens para uma pasta adequada.
-        pattern = f'{self.manga_name}_'
-        imgs_to_move = system_ma.find_files(self.download_dir, [pattern])
-        system_ma.move_files(imgs_to_move, self.files_dir)
+        patterns = [f'{self.manga_name}_', '.jpg']
+        downloaded_imgs = system_ma.find_files(self.download_dir, patterns)
+        system_ma.move_files(downloaded_imgs, self.files_dir)
 
         # Informa o progresso.
         queue.put(['show_info', ['Imagens movidas para pasta de edição.']])
 
         # Obtem o nome das imagens.
-        images_to_convert = system_ma.find_files(self.files_dir, [''])
-        num_imgs = len(images_to_convert)
+        num_imgs = len(downloaded_imgs)
 
-        # Avisa do progresso.
+        # Informa o progresso.
         queue.put(['show_info', ['Iniciando conversão para PDF.', f'Progresso: {0:.2%}']])
 
-        for current_img_index, img_path in enumerate(images_to_convert):
+        for current_img_index, img_path in enumerate(downloaded_imgs):
             # Converte imagens para PDF.
             try:
                 PDFManager.convert_to_pdf(img_path)
@@ -220,6 +220,7 @@ class DownloadManager:
         queue.put(['show_info', ['Iniciando compilação dos capítulos.', f'Progresso: {0:.2%}']])
 
         for chapter_index, chapter in enumerate(chapters):
+            # Seleciona imagens pertencentes a esse capítulo.
             chapter_files = [path for path in pdfs_paths if path[path.index('_') + 1:path.index('-')] == chapter]
 
             # Compila os capítulos baixados.
@@ -228,7 +229,7 @@ class DownloadManager:
             except Exception as error:
                 self.end_process(queue, str(error))
 
-            # Avisa do progresso.
+            # Informa o progresso.
             completion_percentage = (chapter_index + 1) / num_chapters
             queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
 
@@ -239,4 +240,5 @@ class DownloadManager:
         # Informa o progresso.
         queue.put(['show_info', ['Concluído com sucesso!'], 'Concluído!'])
 
+        # Encerra processo de download.
         queue.put(['end'])

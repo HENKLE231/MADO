@@ -1,0 +1,7 @@
+// DownloadManager
+- Salvar titulo da janela a cada mudança de link, para fechar janela no caso do
+usuário cancelar download.
+
+// Geral.
+- Criar possíbilidade de salvar várias configurações. Podendo carrega-las escolhendo
+em uma nova página a ser exibida antes da home.
