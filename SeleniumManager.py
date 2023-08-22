@@ -17,7 +17,7 @@ class SeleniumManager:
             carregar completamente ou 'eager' espera apenas as estruturas carregarem.
             :param headless: (Boolean) Se deve se esconder.
             :param size_and_position: (Tuple) Tupla com largura, altura, e coordenadas do ponto inicial da janela.
-            Abre o navegador Google Chrome automatizado.
+            Abre o navegador automatizado.
         """
         self.options = webdriver.EdgeOptions()
         self.options.page_load_strategy = page_load_strategy
@@ -27,7 +27,6 @@ class SeleniumManager:
 
         # Define exibição.
         if headless:
-            # TODO: VERIFICAR NECESSIDADE.
             self.options.add_argument('user-agent=Mozilla/5.0'
                                       '(Windows NT 10.0; Win64; x64)'
                                       'AppleWebKit/537.36'
@@ -55,20 +54,9 @@ class SeleniumManager:
     def open_link(self, link):
         """
             :param link: (String) Link de site.
-            :return: (String) Mensagem de erro se necessário.
             Abre link no navegador.
         """
-        status_msg = ''
-        try:
-            # Abre link.
-            self.nav.get(link)
-        except Exception as e:
-            error = str(e)
-            if 'ERR_INTERNET_DISCONNECTED' in error:
-                status_msg = 'Sem internet.'
-            else:
-                status_msg = error
-        return status_msg
+        self.nav.get(link)
 
     def get_nav_title(self):
         """
@@ -80,43 +68,41 @@ class SeleniumManager:
         """
             :param manga_name: (String) Nome do mangá.
             :param chapter: (Int) Número do capítulo.
-            :param frames_location: (Array de Strings) Pelo que procurara e o valor.
-            :param imgs_location: (Array de Strings) Pelo que procurara e o valor.
+            :param frames_location: (Dict de Strings) Pelo que procurara e o valor.
+            :param imgs_location: (Dict de Strings) Pelo que procurara e o valor.
             :return: (String) Mensagem de erro se necessário senão vazio.
         """
-        status_msg = ''
         img_num = 0
         scopes = [self.nav]
-        try:
-            # Se é necessário selecionar algum escopo antes das imagens.
-            if frames_location:
-                scopes = self.nav.find_elements(frames_location['by'], frames_location['value'])
 
-            # Varre os escopos.
-            for scope in scopes:
-                # Seleciona as imagens
-                imgs = scope.find_elements(imgs_location['by'], imgs_location['value'])
+        # Se é necessário selecionar algum escopo antes das imagens.
+        if frames_location['by'] != 'Selecione' and frames_location['value']:
+            scopes = self.nav.find_elements(frames_location['by'], frames_location['value'])
 
-                # Varre as imagens.
-                for img in imgs:
-                    # Monta o nome da imagem como ela será salva posteriormente.
-                    page_num = img_num
-                    if len(str(page_num)) < 2:
-                        page_num = f'0{page_num}'
-                    img_name = f'{manga_name}_{chapter}-{page_num}.jpg'
+        # Varre os escopos.
+        for scope in scopes:
+            # Seleciona as imagens
+            imgs = scope.find_elements(imgs_location['by'], imgs_location['value'])
 
-                    # Salva na instância o nome da imagem e o endereço.
-                    self.imgs_info.append([img_name, img.get_attribute('src')])
-                    print([img_name, img.get_attribute('src')])
-                    img_num += 1
+            # Varre as imagens.
+            for img in imgs:
+                # Monta o nome da imagem como ela será salva posteriormente.
+                page_num = img_num
+                if len(str(page_num)) < 2:
+                    page_num = f'0{page_num}'
+                img_name = f'{manga_name}_{chapter}-{page_num}.jpg'
 
-        except Exception as e:
-            error = str(e)
-            if 'Unable to locate element' in error:
-                status_msg = f'Não há capítulo {chapter}.'
-            else:
-                status_msg = error
-        return status_msg
+                # Salva na instância o nome da imagem e o endereço.
+                self.imgs_info.append([img_name, img.get_attribute('src'), False])
+                img_num += 1
+
+    def get_next_page_link(self, next_page_button_location):
+        """
+            :param next_page_button_location: (Dict de Strings) Pelo que procurara e o valor.
+            :return: (String) Link do próximo capítulo.
+        """
+        next_page_button = self.nav.find_element(next_page_button_location['by'], next_page_button_location['value'])
+        return next_page_button.get_attribute('href')
 
     def execute_script(self, script):
         """
@@ -126,45 +112,40 @@ class SeleniumManager:
         for command in script:
             self.nav.execute_script(command)
 
-    def download_img(self, img_name, url):
+    def download_img(self, img_name, link):
         """
             :param img_name: (String) Nome da imagem.
-            :param url: (String) Endereço da imagem.
+            :param link: (String) Endereço da imagem.
             :return: (String) Mensagem de erro se necessário senão vazio.
             Baixa a imagem.
         """
-        status_msg = ''
         # Edita o script de download.
         download_script = [
             'button=document.createElement("div")',
-            f"""button.innerHTML='<a href="{url}"download="{img_name}"id="download"></a>'""",
+            f"""button.innerHTML='<a href="{link}"download="{img_name}"id="download"></a>'""",
             'document.getElementsByTagName("body")[0].append(button)',
             'document.getElementById("download").click()',
         ]
-        try:
-            # Baixa a imagem.
-            self.execute_script(download_script)
-        except Exception as e:
-            error = str(e)
-            if 'ERR_INTERNET_DISCONNECTED' in error:
-                status_msg = 'Sem internet.'
-            else:
-                status_msg = error
-        return status_msg
+        # Baixa a imagem.
+        self.execute_script(download_script)
 
     def get_percentage_of_downloaded_files(self, download_dir):
         """
             :param download_dir: (String) Caminho para pasta de downloads.
             :return: (Float) Porcentagem de downloads completos.
+            Informa procentagem de downloads completos e marca as imagens como baixadas.
         """
         # Verifica número total de imagens a serem baixadas.
         num_imgs = len(self.imgs_info)
         num_completed_downloads = 0
 
         # Verifica existência dos arquivos.
-        for img_info in self.imgs_info:
-            if os.path.isfile(os.path.join(download_dir, img_info[0])):
+        for i, img_info in enumerate(self.imgs_info):
+            img_name, link, downloaded = img_info
+            if os.path.isfile(os.path.join(download_dir, img_name)):
                 num_completed_downloads += 1
+                if not downloaded:
+                    self.imgs_info[i][2] = True
 
         # Calcula a porcentagem de downloads completos.
         return num_completed_downloads / num_imgs

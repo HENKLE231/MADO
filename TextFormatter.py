@@ -70,3 +70,14 @@ class TextFormatter:
                     # Linha está nas normas
                     formatted_lines.append(line)
         return formatted_lines
+
+    @staticmethod
+    def get_last_piece_of_path(path):
+        """
+            :param path: (String) Caminho completo para a pasta.
+            :return: (String) Nome da pasta no final do caminho.
+        """
+        seps = [r'\ '.strip(), '/']
+        for sep in seps:
+            if sep in path:
+                return path.split(sep)[-1]

@@ -11,14 +11,18 @@ class ConfigManager:
             # Mangá.
             'manga_name': '',
             'base_link': '',
+            'last_link_opened': '',
             'initial_chapter': 1,
             'final_chapter': 1,
+            'frames_location_by': 'Selecione',
+            'frames_location_value': '',
+            'imgs_location_by': 'Selecione',
+            'imgs_location_value': '',
+            'next_page_button_location_by': 'Selecione',
+            'next_page_button_location_value': '',
             # Pastas.
-            'cwd': os.getcwd(),
-            'user_dir': system_ma.user_dir,
-            'imgs_dir': str(Path(r'{}\imgs'.format(os.getcwd()))),
             'download_dir': str(Path(r'{}\Downloads'.format(system_ma.user_dir))),
-            'files_dir': str(Path(r'{}\files_for_chapters'.format(os.getcwd()))),
+            'files_dir': str(Path(r'{}\files'.format(os.getcwd()))),
             'final_dir': '',
             # Arquivo de configuração
             'config_file': str(Path(r'{}\Config.txt'.format(os.getcwd())))
@@ -37,14 +41,14 @@ class ConfigManager:
             config_lines = config_txt.readlines()
             config_txt.close()
             config_lines = [line.replace('\n', '') for line in config_lines]
-    
+
             # Atribui valores.
             for config_key in self.config_list.keys():
                 for line in config_lines:
                     if line.startswith('{}='.format(config_key)):
                         self.config_list[config_key] = line[line.index('=')+1:]
                         break
-        except:
+        except FileNotFoundError:
             self.save_configs()
 
     def save_configs(self):

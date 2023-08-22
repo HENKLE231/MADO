@@ -1,4 +1,2 @@
-# verify_for_run
-- Verificar conexão com internet antes de iniciar o download.
-
-# Próxima versão, fazer tudo em uma tela e executar constantes verificações para comunicação.
+# DownloadManager
+- Verificação quando não há mais capitulos

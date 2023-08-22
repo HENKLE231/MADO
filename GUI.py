@@ -1,3 +1,4 @@
+from pathlib import Path
 import tkinter as tk
 from tkinter import scrolledtext
 from tkinter.filedialog import askdirectory
@@ -42,7 +43,7 @@ class GUI:
         self.frame_initial_chapter = tk.Frame(self.home_frame)
         self.frame_initial_chapter.columnconfigure(0, weight=1)
         self.frame_initial_chapter.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
-        self.label_initial_chapter_warning = tk.Label(self.frame_initial_chapter, text='', fg='red')
+        self.warning_label_initial_chapter = tk.Label(self.frame_initial_chapter, text='', fg='red')
         self.border_initial_chapter = tk.Frame(self.frame_initial_chapter)
         self.border_initial_chapter.columnconfigure(0, weight=1)
         self.border_initial_chapter.grid(row=1, column=0, sticky='nswe')
@@ -55,7 +56,7 @@ class GUI:
         self.frame_final_chapter = tk.Frame(self.home_frame)
         self.frame_final_chapter.columnconfigure(0, weight=1)
         self.frame_final_chapter.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
-        self.label_final_chapter_warning = tk.Label(self.frame_final_chapter, text='', fg='red')
+        self.warning_label_final_chapter = tk.Label(self.frame_final_chapter, text='', fg='red')
         self.border_final_chapter = tk.Frame(self.frame_final_chapter)
         self.border_final_chapter.columnconfigure(0, weight=1)
         self.border_final_chapter.grid(row=1, column=0, sticky='nswe')
@@ -78,14 +79,14 @@ class GUI:
         # Adiciona a lista de widgets que podem ser destacados.
         self.config_fields['initial_chapter'] = {
             'display_frame': 'home_frame',
-            'warning_label': self.label_initial_chapter_warning,
+            'warning_label': self.warning_label_initial_chapter,
             'border': self.border_initial_chapter,
             'entry': self.entry_initial_chapter,
             'var': self.var_initial_chapter
         }
         self.config_fields['final_chapter'] = {
             'display_frame': 'home_frame',
-            'warning_label': self.label_final_chapter_warning,
+            'warning_label': self.warning_label_final_chapter,
             'border': self.border_final_chapter,
             'entry': self.entry_final_chapter,
             'var': self.var_final_chapter
@@ -100,29 +101,16 @@ class GUI:
         self.config_frame = tk.Frame(self.window)
         self.var_manga_name = tk.StringVar()
         self.var_base_link = tk.StringVar()
+        self.var_last_link_opened = tk.StringVar()
         self.var_final_dir = tk.StringVar()
-        self.var_imgs_dir = tk.StringVar()
         self.var_download_dir = tk.StringVar()
         self.var_files_dir = tk.StringVar()
-        # TODO: CONTINUAR
-        # self.var_frame_location_by = tk.StringVar()
-        # self.var_frame_location_value = tk.StringVar()
-        # self.var_imgs_location_by = tk.StringVar()
-        # self.var_imgs_location_value = tk.StringVar()
-        #
-        # # Atribuição de opção padrão.
-        # self.var_frame_location_by.set('Selecione')
-        # self.var_imgs_location_by.set('Selecione')
-        # self.by_options_list = [
-        #     "id",
-        #     "name",
-        #     "xpath",
-        #     "link text",
-        #     "partial link text",
-        #     "tag name",
-        #     "class name",
-        #     "css selector"
-        # ]
+        self.var_frames_location_by = tk.StringVar()
+        self.var_frames_location_value = tk.StringVar()
+        self.var_imgs_location_by = tk.StringVar()
+        self.var_imgs_location_value = tk.StringVar()
+        self.var_next_page_button_location_by = tk.StringVar()
+        self.var_next_page_button_location_value = tk.StringVar()
 
         # Elementos.
         # Linha 0.
@@ -135,7 +123,7 @@ class GUI:
         self.frame_manga_name = tk.Frame(self.config_frame)
         self.frame_manga_name.columnconfigure(0, weight=1)
         self.frame_manga_name.grid(row=1, column=1, sticky='we')
-        self.label_manga_name_warning = tk.Label(self.frame_manga_name, text='', fg='red')
+        self.warning_label_manga_name = tk.Label(self.frame_manga_name, text='', fg='red')
         self.border_manga_name = tk.Frame(self.frame_manga_name)
         self.border_manga_name.columnconfigure(0, weight=1)
         self.border_manga_name.grid(row=1, column=0, sticky='nswe')
@@ -148,7 +136,7 @@ class GUI:
         self.frame_base_link = tk.Frame(self.config_frame)
         self.frame_base_link.columnconfigure(0, weight=1)
         self.frame_base_link.grid(row=2, column=1, sticky='we')
-        self.label_base_link_warning = tk.Label(self.frame_base_link, text='', fg='red')
+        self.warning_label_base_link = tk.Label(self.frame_base_link, text='', fg='red')
         self.border_base_link = tk.Frame(self.frame_base_link)
         self.border_base_link.columnconfigure(0, weight=1)
         self.border_base_link.grid(row=1, column=0, sticky='nswe')
@@ -156,12 +144,25 @@ class GUI:
         self.entry_base_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 3.
+        self.label_last_link_opened = tk.Label(self.config_frame, text='Último link aberto:', anchor='e')
+        self.label_last_link_opened.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_last_link_opened = tk.Frame(self.config_frame)
+        self.frame_last_link_opened.columnconfigure(0, weight=1)
+        self.frame_last_link_opened.grid(row=3, column=1, sticky='we')
+        self.warning_label_last_link_opened = tk.Label(self.frame_last_link_opened, text='', fg='red')
+        self.border_last_link_opened = tk.Frame(self.frame_last_link_opened)
+        self.border_last_link_opened.columnconfigure(0, weight=1)
+        self.border_last_link_opened.grid(row=1, column=0, sticky='nswe')
+        self.entry_last_link_opened = tk.Entry(self.border_last_link_opened, textvariable=self.var_last_link_opened)
+        self.entry_last_link_opened.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 4.
         self.label_final_dir = tk.Label(self.config_frame, text='Pasta final:', anchor='e')
-        self.label_final_dir.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
+        self.label_final_dir.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_final_dir = tk.Frame(self.config_frame)
         self.frame_final_dir.columnconfigure(0, weight=1)
-        self.frame_final_dir.grid(row=3, column=1, sticky='we')
-        self.label_final_dir_warning = tk.Label(self.frame_final_dir, text='', fg='red')
+        self.frame_final_dir.grid(row=4, column=1, sticky='we')
+        self.warning_label_final_dir = tk.Label(self.frame_final_dir, text='', fg='red')
         self.border_final_dir = tk.Frame(self.frame_final_dir)
         self.border_final_dir.columnconfigure(0, weight=1)
         self.border_final_dir.grid(row=1, column=0, sticky='nswe')
@@ -169,23 +170,7 @@ class GUI:
         self.entry_final_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
         command = partial(self.select_dir, 'Selecione pasta de destino dos mangás.', self.var_final_dir)
         self.button_final_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-        self.button_final_dir.grid(row=3, column=2, padx=self.default_padx, sticky='swe')
-
-        # Linha 4.
-        self.label_imgs_dir = tk.Label(self.config_frame, text='Pasta de Imagens:', anchor='e')
-        self.label_imgs_dir.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_imgs_dir = tk.Frame(self.config_frame)
-        self.frame_imgs_dir.columnconfigure(0, weight=1)
-        self.frame_imgs_dir.grid(row=4, column=1, sticky='we')
-        self.label_imgs_dir_warning = tk.Label(self.frame_imgs_dir, text='', fg='red')
-        self.border_imgs_dir = tk.Frame(self.frame_imgs_dir)
-        self.border_imgs_dir.columnconfigure(0, weight=1)
-        self.border_imgs_dir.grid(row=1, column=0, sticky='nswe')
-        self.entry_imgs_dir = tk.Entry(self.border_imgs_dir, textvariable=self.var_imgs_dir)
-        self.entry_imgs_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.select_dir, 'Selecione pasta com as imagens de reconhecimento.', self.var_imgs_dir)
-        self.button_imgs_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-        self.button_imgs_dir.grid(row=4, column=2, padx=self.default_padx, sticky='swe')
+        self.button_final_dir.grid(row=4, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 5.
         self.label_download_dir = tk.Label(self.config_frame, text='Pasta de Download:', anchor='e')
@@ -193,7 +178,7 @@ class GUI:
         self.frame_download_dir = tk.Frame(self.config_frame)
         self.frame_download_dir.columnconfigure(0, weight=1)
         self.frame_download_dir.grid(row=5, column=1, sticky='we')
-        self.label_download_dir_warning = tk.Label(self.frame_download_dir, text='', fg='red')
+        self.warning_label_download_dir = tk.Label(self.frame_download_dir, text='', fg='red')
         self.border_download_dir = tk.Frame(self.frame_download_dir)
         self.border_download_dir.columnconfigure(0, weight=1)
         self.border_download_dir.grid(row=1, column=0, sticky='nswe')
@@ -209,7 +194,7 @@ class GUI:
         self.frame_files_dir = tk.Frame(self.config_frame)
         self.frame_files_dir.columnconfigure(0, weight=1)
         self.frame_files_dir.grid(row=6, column=1, sticky='we')
-        self.label_files_dir_warning = tk.Label(self.frame_files_dir, text='', fg='red')
+        self.warning_label_files_dir = tk.Label(self.frame_files_dir, text='', fg='red')
         self.border_files_dir = tk.Frame(self.frame_files_dir)
         self.border_files_dir.columnconfigure(0, weight=1)
         self.border_files_dir.grid(row=1, column=0, sticky='nswe')
@@ -219,32 +204,96 @@ class GUI:
         self.button_files_dir = tk.Button(self.config_frame, text='Procurar', command=command)
         self.button_files_dir.grid(row=6, column=2, padx=self.default_padx, sticky='swe')
 
-        # TODO: CONTINUAR
         # Linha 7.
-        # self.label_frame_location_by = tk.Label(self.config_frame, text='Procurar quadro por:', anchor='e')
-        # self.label_frame_location_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
-        # self.frame_frame_location_by = tk.Frame(self.config_frame)
-        # self.frame_frame_location_by.columnconfigure(0, weight=1)
-        # self.frame_frame_location_by.grid(row=7, column=1, sticky='we')
-        # self.label_frame_location_by_warning = tk.Label(self.frame_frame_location_by, text='', fg='red')
-        # self.border_frame_location_by = tk.Frame(self.frame_frame_location_by)
-        # self.border_frame_location_by.columnconfigure(0, weight=1)
-        # self.border_frame_location_by.grid(row=1, column=0, sticky='nswe')
-        # # TODO: COMMAND
-        # # command = partial()
-        # self.option_menu_frame_location_by = tk.OptionMenu(
-        #     self.config_frame,  self.var_frame_location_by, self.by_options_list, command=command
-        # )
-        # self.option_menu_frame_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        self.label_frames_location_by = tk.Label(self.config_frame, text='Procurar quadros por:', anchor='e')
+        self.label_frames_location_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_frames_location_by = tk.Frame(self.config_frame)
+        self.frame_frames_location_by.columnconfigure(0, weight=1)
+        self.frame_frames_location_by.grid(row=7, column=1, sticky='we')
+        self.warning_label_frames_location_by = tk.Label(self.frame_frames_location_by, text='', fg='red')
+        self.border_frames_location_by = tk.Frame(self.frame_frames_location_by)
+        self.border_frames_location_by.columnconfigure(0, weight=1)
+        self.border_frames_location_by.grid(row=1, column=0, sticky='nswe')
+        self.option_menu_frames_location_by = tk.OptionMenu(
+        self.border_frames_location_by,  self.var_frames_location_by,
+            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+        )
+        self.option_menu_frames_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-        # self.var_frame_location_by = tk.StringVar()
-        # self.var_frame_location_value = tk.StringVar()
-        # self.var_imgs_location_by = tk.StringVar()
-        # self.var_imgs_location_value = tk.StringVar()
+        # Linha 8.
+        self.label_frames_location_value = tk.Label(self.config_frame, text='Valor:', anchor='e')
+        self.label_frames_location_value.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_frames_location_value = tk.Frame(self.config_frame)
+        self.frame_frames_location_value.columnconfigure(0, weight=1)
+        self.frame_frames_location_value.grid(row=8, column=1, sticky='we')
+        self.warning_label_frames_location_value = tk.Label(self.frame_frames_location_value, text='', fg='red')
+        self.border_frames_location_value = tk.Frame(self.frame_frames_location_value)
+        self.border_frames_location_value.columnconfigure(0, weight=1)
+        self.border_frames_location_value.grid(row=1, column=0, sticky='nswe')
+        self.entry_frames_location_value = tk.Entry(self.border_frames_location_value, textvariable=self.var_frames_location_value)
+        self.entry_frames_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-        # Linha 7.
+        # Linha 9.
+        self.label_imgs_location_by = tk.Label(self.config_frame, text='Procurar imagens por:', anchor='e')
+        self.label_imgs_location_by.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_imgs_location_by = tk.Frame(self.config_frame)
+        self.frame_imgs_location_by.columnconfigure(0, weight=1)
+        self.frame_imgs_location_by.grid(row=9, column=1, sticky='we')
+        self.warning_label_imgs_location_by = tk.Label(self.frame_imgs_location_by, text='', fg='red')
+        self.border_imgs_location_by = tk.Frame(self.frame_imgs_location_by)
+        self.border_imgs_location_by.columnconfigure(0, weight=1)
+        self.border_imgs_location_by.grid(row=1, column=0, sticky='nswe')
+        self.option_menu_imgs_location_by = tk.OptionMenu(
+        self.border_imgs_location_by,  self.var_imgs_location_by,
+            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+        )
+        self.option_menu_imgs_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 10.
+        self.label_imgs_location_value = tk.Label(self.config_frame, text='Valor:', anchor='e')
+        self.label_imgs_location_value.grid(row=10, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_imgs_location_value = tk.Frame(self.config_frame)
+        self.frame_imgs_location_value.columnconfigure(0, weight=1)
+        self.frame_imgs_location_value.grid(row=10, column=1, sticky='we')
+        self.warning_label_imgs_location_value = tk.Label(self.frame_imgs_location_value, text='', fg='red')
+        self.border_imgs_location_value = tk.Frame(self.frame_imgs_location_value)
+        self.border_imgs_location_value.columnconfigure(0, weight=1)
+        self.border_imgs_location_value.grid(row=1, column=0, sticky='nswe')
+        self.entry_imgs_location_value = tk.Entry(self.border_imgs_location_value, textvariable=self.var_imgs_location_value)
+        self.entry_imgs_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 11.
+        self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Procurar botão de avançar por:', anchor='e')
+        self.label_next_page_button_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_next_page_button_location_by = tk.Frame(self.config_frame)
+        self.frame_next_page_button_location_by.columnconfigure(0, weight=1)
+        self.frame_next_page_button_location_by.grid(row=11, column=1, sticky='we')
+        self.warning_label_next_page_button_location_by = tk.Label(self.frame_next_page_button_location_by, text='', fg='red')
+        self.border_next_page_button_location_by = tk.Frame(self.frame_next_page_button_location_by)
+        self.border_next_page_button_location_by.columnconfigure(0, weight=1)
+        self.border_next_page_button_location_by.grid(row=1, column=0, sticky='nswe')
+        self.option_menu_next_page_button_location_by = tk.OptionMenu(
+        self.border_next_page_button_location_by,  self.var_next_page_button_location_by,
+            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+        )
+        self.option_menu_next_page_button_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 12.
+        self.label_next_page_button_location_value = tk.Label(self.config_frame, text='Valor:', anchor='e')
+        self.label_next_page_button_location_value.grid(row=12, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_next_page_button_location_value = tk.Frame(self.config_frame)
+        self.frame_next_page_button_location_value.columnconfigure(0, weight=1)
+        self.frame_next_page_button_location_value.grid(row=12, column=1, sticky='we')
+        self.warning_label_next_page_button_location_value = tk.Label(self.frame_next_page_button_location_value, text='', fg='red')
+        self.border_next_page_button_location_value = tk.Frame(self.frame_next_page_button_location_value)
+        self.border_next_page_button_location_value.columnconfigure(0, weight=1)
+        self.border_next_page_button_location_value.grid(row=1, column=0, sticky='nswe')
+        self.entry_next_page_button_location_value = tk.Entry(self.border_next_page_button_location_value, textvariable=self.var_next_page_button_location_value)
+        self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 13.
         self.bottom_buttons_frame = tk.Frame(self.config_frame)
-        self.bottom_buttons_frame.grid(row=7, column=1, padx=2)
+        self.bottom_buttons_frame.grid(row=13, column=1, padx=2)
         self.space = tk.Label(self.bottom_buttons_frame, text='')
         self.space.grid(row=0, column=0, padx=100)
         command = partial(self.reset_configs)
@@ -252,50 +301,92 @@ class GUI:
         self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
         command = partial(self.switch_frame, 'home_frame')
         self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
-        self.button_back.grid(row=7, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
+        self.button_back.grid(row=13, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
 
         # Adiciona a lista de widgets que podem ser destacados.
         self.config_fields['manga_name'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_manga_name_warning,
+            'warning_label': self.warning_label_manga_name,
             'border': self.border_manga_name,
             'entry': self.entry_manga_name,
             'var': self.var_manga_name
         }
         self.config_fields['base_link'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_base_link_warning,
+            'warning_label': self.warning_label_base_link,
             'border': self.border_base_link,
             'entry': self.entry_base_link,
             'var': self.var_base_link
         }
-        self.config_fields['imgs_dir'] = {
+        self.config_fields['last_link_opened'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_imgs_dir_warning,
-            'border': self.border_imgs_dir,
-            'entry': self.entry_imgs_dir,
-            'var': self.var_imgs_dir
+            'warning_label': self.warning_label_last_link_opened,
+            'border': self.border_last_link_opened,
+            'entry': self.entry_last_link_opened,
+            'var': self.var_last_link_opened
+        }
+        self.config_fields['final_dir'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_final_dir,
+            'border': self.border_final_dir,
+            'entry': self.entry_final_dir,
+            'var': self.var_final_dir
         }
         self.config_fields['download_dir'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_download_dir_warning,
+            'warning_label': self.warning_label_download_dir,
             'border': self.border_download_dir,
             'entry': self.entry_download_dir,
             'var': self.var_download_dir
         }
         self.config_fields['files_dir'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_files_dir_warning,
+            'warning_label': self.warning_label_files_dir,
             'border': self.border_files_dir,
             'entry': self.entry_files_dir,
             'var': self.var_files_dir
         }
-        self.config_fields['final_dir'] = {
+        self.config_fields['frames_location_by'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.label_final_dir_warning,
-            'border': self.border_final_dir,
-            'entry': self.entry_final_dir,
-            'var': self.var_final_dir
+            'warning_label': self.warning_label_frames_location_by,
+            'border': self.border_frames_location_by,
+            'entry': self.option_menu_frames_location_by,
+            'var': self.var_frames_location_by
+        }
+        self.config_fields['frames_location_value'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_frames_location_value,
+            'border': self.border_frames_location_value,
+            'entry': self.entry_frames_location_value,
+            'var': self.var_frames_location_value
+        }
+        self.config_fields['imgs_location_by'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_imgs_location_by,
+            'border': self.border_imgs_location_by,
+            'entry': self.option_menu_imgs_location_by,
+            'var': self.var_imgs_location_by
+        }
+        self.config_fields['imgs_location_value'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_imgs_location_value,
+            'border': self.border_imgs_location_value,
+            'entry': self.entry_imgs_location_value,
+            'var': self.var_imgs_location_value
+        }
+        self.config_fields['next_page_button_location_by'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_next_page_button_location_by,
+            'border': self.border_next_page_button_location_by,
+            'entry': self.option_menu_next_page_button_location_by,
+            'var': self.var_next_page_button_location_by
+        }
+        self.config_fields['next_page_button_location_value'] = {
+            'display_frame': 'config_frame',
+            'warning_label': self.warning_label_next_page_button_location_value,
+            'border': self.border_next_page_button_location_value,
+            'entry': self.entry_next_page_button_location_value,
+            'var': self.var_next_page_button_location_value
         }
 
         # Adiciona às janelas existentes.
@@ -484,7 +575,7 @@ class GUI:
 
             addition = ''
             if num_files > 1:
-                additon = 's'
+                addition = 's'
             deletion_status = [
                 f'Exclusão de {num_files} capítulo{addition} realizada com sucesso!'
             ]
@@ -528,6 +619,12 @@ class GUI:
         if not config_ma.config_list['base_link']:
             configs_and_warnings['base_link'] = 'Informe o link do capítulo inicial.'
 
+        # Pasta onde serão compilados os capítulos.
+        if not config_ma.config_list['final_dir']:
+            configs_and_warnings['final_dir'] = 'Informe a pasta de destino.'
+        elif not system_ma.path_exist(config_ma.config_list['final_dir']):
+            configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
+
         # Capitulo inicial e final.
         initial_chapter = config_ma.config_list['initial_chapter']
         final_chapter = config_ma.config_list['final_chapter']
@@ -550,13 +647,6 @@ class GUI:
             if initial_chapter > final_chapter:
                 configs_and_warnings['initial_chapter'] = 'Deve ser menor ou igual ao final.'
 
-        # TODO: VERIFICAR NECESSIDADE.
-        # # Pasta de imagens para reconhecimento na tela.
-        # if not config_ma.config_list['imgs_dir']:
-        #     configs_and_warnings['imgs_dir'] = 'Informe a pasta de imagens para reconhecimento.'
-        # elif not system_ma.path_exist(config_ma.config_list['imgs_dir']):
-        #     configs_and_warnings['imgs_dir'] = 'Informe uma pasta valida.'
-
         # Pasta de download do navegador.
         if not config_ma.config_list['download_dir']:
             configs_and_warnings['download_dir'] = 'Informe a pasta de download do chrome.'
@@ -568,12 +658,22 @@ class GUI:
             configs_and_warnings['files_dir'] = 'Informe uma pasta para edição de imagens.'
         elif not system_ma.path_exist(config_ma.config_list['files_dir']):
             configs_and_warnings['files_dir'] = 'Informe uma pasta valida.'
+            
+        # Localização dos quadros das imagens.
+        if config_ma.config_list['frames_location_value'] and config_ma.config_list['frames_location_by'] == 'Selecione':
+            configs_and_warnings['frames_location_by'] = 'Selecione um identificador.'
 
-        # Pasta onde serão compilados os capítulos.
-        if not config_ma.config_list['final_dir']:
-            configs_and_warnings['final_dir'] = 'Informe a pasta de destino.'
-        elif not system_ma.path_exist(config_ma.config_list['final_dir']):
-            configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
+        # Localização das imagens.
+        if config_ma.config_list['imgs_location_by'] == 'Selecione':
+            configs_and_warnings['imgs_location_by'] = 'Selecione um identificador.'
+        if not config_ma.config_list['imgs_location_value']:
+            configs_and_warnings['imgs_location_value'] = 'Informe um valor.'
+
+        # Localização do botão de avançar para a próxima página.
+        if config_ma.config_list['next_page_button_location_by'] == 'Selecione':
+            configs_and_warnings['next_page_button_location_by'] = 'Selecione um identificador.'
+        if not config_ma.config_list['next_page_button_location_value']:
+            configs_and_warnings['next_page_button_location_value'] = 'Informe um valor.'
 
         # Tira o destaque dos campos.
         self.unhighlight()
@@ -610,15 +710,29 @@ class GUI:
         # Verifica constantemente mensagens do outro processo.
         while True:
             function = queue.get()
-            match function[0]:
+            func_name = function[0]
+            param1 = None
+            param2 = None
+            if len(function) > 1:
+                param1 = function[1]
+            if len(function) > 2:
+                param2 = function[2]
+
+            match func_name:
                 case 'save_secondary_process_id':
-                    self.save_secondary_process_id(function[1])
+                    self.save_secondary_process_id(param1)
                 case 'show_info':
-                    self.show_info(function[1], function[2])
+                    if param2:
+                        self.show_info(param1, param2)
+                    else:
+                        self.show_info(param1)
                 case 'update_last_lines':
-                    self.update_last_lines(function[1], function[2])
+                    if param2:
+                        self.update_last_lines(param1, param2)
+                    else:
+                        self.update_last_lines(param1)
                 case 'close_windows':
-                    system_ma.close_windows(function[1])
+                    system_ma.close_windows(param1)
                 case 'kill_secondary_process':
                     self.kill_secondary_process()
                     break
@@ -642,7 +756,7 @@ class GUI:
 
         # Se informado o caminho, preenche o campo.
         if new_dir:
-            variable.set(new_dir)
+            variable.set(str(Path(new_dir)))
 
     def reset_configs(self):
         """
