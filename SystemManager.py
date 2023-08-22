@@ -1,5 +1,3 @@
-import win32gui
-import win32com.client as com_cli
 from win32api import GetSystemMetrics
 from TextFormatter import TextFormatter
 from pathlib import Path
@@ -13,37 +11,6 @@ class SystemManager:
         self.screen_y = GetSystemMetrics(1)
         self.cwd = os.getcwd()
         self.user_dir = self.cwd[:self.cwd.index(r'\ '.strip(), self.cwd.index('Users')+6)]
-
-    @staticmethod
-    def get_window_name():
-        """
-            :return: (String) Nome da janela com o foco atual.
-        """
-        return win32gui.GetWindowText(win32gui.GetForegroundWindow())
-
-    def get_window(self, window_name=''):
-        """
-            :param window_name: (String) Nome da janela.
-            :return: (Int) Identificador da janela.
-        """
-        if not window_name:
-            window_name = self.get_window_name()
-        return win32gui.FindWindow(None, window_name)
-
-    def close_windows(self, windows_to_close):
-        """
-            :param windows_to_close: (Array de Strings) Lista com os nomes das janelas.
-            Fecha janelas com os nomes passados.
-        """
-        for window_name in windows_to_close:
-            if self.get_window(window_name) != 0:
-                wsh = com_cli.Dispatch('WScript.Shell')
-
-                # Seleciona a janela.
-                wsh.AppActivate(window_name)
-
-                # Envia o atalho Alt+F4 para a janela.
-                wsh.SendKeys('%{F4}')
 
     @staticmethod
     def end_process(target='pid', pid=0):

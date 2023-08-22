@@ -21,8 +21,6 @@ class SeleniumManager:
         """
         self.options = webdriver.EdgeOptions()
         self.options.page_load_strategy = page_load_strategy
-        # TODO: TESTAR SEM
-        # self.options.add_argument('auto-open-devtools-for-tabs')
         self.options.add_argument("inprivate")
 
         # Define exibição.
@@ -48,7 +46,10 @@ class SeleniumManager:
         """
             Fecha navegador.
         """
-        self.nav.close()
+        try:
+            self.nav.close()
+        except AttributeError:
+            pass
         self.nav = None
 
     def open_link(self, link):

@@ -1,2 +1,0 @@
-# DownloadManager
-- Verificação quando não há mais capitulos

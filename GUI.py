@@ -101,7 +101,7 @@ class GUI:
         self.config_frame = tk.Frame(self.window)
         self.var_manga_name = tk.StringVar()
         self.var_base_link = tk.StringVar()
-        self.var_last_link_opened = tk.StringVar()
+        self.var_last_link = tk.StringVar()
         self.var_final_dir = tk.StringVar()
         self.var_download_dir = tk.StringVar()
         self.var_files_dir = tk.StringVar()
@@ -142,19 +142,25 @@ class GUI:
         self.border_base_link.grid(row=1, column=0, sticky='nswe')
         self.entry_base_link = tk.Entry(self.border_base_link, textvariable=self.var_base_link)
         self.entry_base_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.clear_var, self.var_base_link)
+        self.button_base_link = tk.Button(self.config_frame, text='Apagar', command=command)
+        self.button_base_link.grid(row=2, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 3.
-        self.label_last_link_opened = tk.Label(self.config_frame, text='Último link aberto:', anchor='e')
-        self.label_last_link_opened.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_last_link_opened = tk.Frame(self.config_frame)
-        self.frame_last_link_opened.columnconfigure(0, weight=1)
-        self.frame_last_link_opened.grid(row=3, column=1, sticky='we')
-        self.warning_label_last_link_opened = tk.Label(self.frame_last_link_opened, text='', fg='red')
-        self.border_last_link_opened = tk.Frame(self.frame_last_link_opened)
-        self.border_last_link_opened.columnconfigure(0, weight=1)
-        self.border_last_link_opened.grid(row=1, column=0, sticky='nswe')
-        self.entry_last_link_opened = tk.Entry(self.border_last_link_opened, textvariable=self.var_last_link_opened)
-        self.entry_last_link_opened.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        self.label_last_link = tk.Label(self.config_frame, text='Último link aberto:', anchor='e')
+        self.label_last_link.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_last_link = tk.Frame(self.config_frame)
+        self.frame_last_link.columnconfigure(0, weight=1)
+        self.frame_last_link.grid(row=3, column=1, sticky='we')
+        self.warning_label_last_link = tk.Label(self.frame_last_link, text='', fg='red')
+        self.border_last_link = tk.Frame(self.frame_last_link)
+        self.border_last_link.columnconfigure(0, weight=1)
+        self.border_last_link.grid(row=1, column=0, sticky='nswe')
+        self.entry_last_link = tk.Entry(self.border_last_link, textvariable=self.var_last_link)
+        self.entry_last_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.copy_last_link_to_base_link)
+        self.button_last_link = tk.Button(self.config_frame, text='Colar a cima', command=command)
+        self.button_last_link.grid(row=3, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 4.
         self.label_final_dir = tk.Label(self.config_frame, text='Pasta final:', anchor='e')
@@ -215,7 +221,7 @@ class GUI:
         self.border_frames_location_by.columnconfigure(0, weight=1)
         self.border_frames_location_by.grid(row=1, column=0, sticky='nswe')
         self.option_menu_frames_location_by = tk.OptionMenu(
-        self.border_frames_location_by,  self.var_frames_location_by,
+            self.border_frames_location_by,  self.var_frames_location_by,
             "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
         )
         self.option_menu_frames_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
@@ -244,7 +250,7 @@ class GUI:
         self.border_imgs_location_by.columnconfigure(0, weight=1)
         self.border_imgs_location_by.grid(row=1, column=0, sticky='nswe')
         self.option_menu_imgs_location_by = tk.OptionMenu(
-        self.border_imgs_location_by,  self.var_imgs_location_by,
+            self.border_imgs_location_by,  self.var_imgs_location_by,
             "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
         )
         self.option_menu_imgs_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
@@ -273,7 +279,7 @@ class GUI:
         self.border_next_page_button_location_by.columnconfigure(0, weight=1)
         self.border_next_page_button_location_by.grid(row=1, column=0, sticky='nswe')
         self.option_menu_next_page_button_location_by = tk.OptionMenu(
-        self.border_next_page_button_location_by,  self.var_next_page_button_location_by,
+            self.border_next_page_button_location_by,  self.var_next_page_button_location_by,
             "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
         )
         self.option_menu_next_page_button_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
@@ -318,12 +324,12 @@ class GUI:
             'entry': self.entry_base_link,
             'var': self.var_base_link
         }
-        self.config_fields['last_link_opened'] = {
+        self.config_fields['last_link'] = {
             'display_frame': 'config_frame',
-            'warning_label': self.warning_label_last_link_opened,
-            'border': self.border_last_link_opened,
-            'entry': self.entry_last_link_opened,
-            'var': self.var_last_link_opened
+            'warning_label': self.warning_label_last_link,
+            'border': self.border_last_link,
+            'entry': self.entry_last_link,
+            'var': self.var_last_link
         }
         self.config_fields['final_dir'] = {
             'display_frame': 'config_frame',
@@ -463,6 +469,13 @@ class GUI:
 
         # Salva as configurações.
         config_ma.save_configs()
+
+    def save_last_link(self, link):
+        # Edita o campo.
+        self.config_fields['last_link']['var'].set(link)
+
+        # Salva as configurações.
+        self.save_config_changes()
 
     def highlight_fields(self, configs_and_warnings):
         """
@@ -731,8 +744,8 @@ class GUI:
                         self.update_last_lines(param1, param2)
                     else:
                         self.update_last_lines(param1)
-                case 'close_windows':
-                    system_ma.close_windows(param1)
+                case 'save_last_link':
+                    self.save_last_link(param1)
                 case 'kill_secondary_process':
                     self.kill_secondary_process()
                     break
@@ -757,6 +770,19 @@ class GUI:
         # Se informado o caminho, preenche o campo.
         if new_dir:
             variable.set(str(Path(new_dir)))
+
+    def clear_var(self, variable):
+        """
+            :param variable: (tk.StringVar) Variável a ser limpa.
+            Limpa variavel.
+        """
+        variable.set('')
+
+    def copy_last_link_to_base_link(self):
+        """
+            Copia o último link para o link base.
+        """
+        self.config_fields['base_link']['var'].set(self.config_fields['last_link']['var'].get())
 
     def reset_configs(self):
         """

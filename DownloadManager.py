@@ -1,12 +1,8 @@
 from SeleniumManager import SeleniumManager
-# from ScreenManager import ScreenManager
 from ConfigManager import ConfigManager
 from SystemManager import SystemManager
 from PDFManager import PDFManager
-# from TimeManager import TimeManager
-# TODO: TIRAR TIME
 import time
-# import os
 
 
 class DownloadManager:
@@ -86,8 +82,6 @@ class DownloadManager:
         num_chapters = self.final_chapter - self.chapter + 1
         current_chapter_index = 0
 
-        # TODO: Pegar frame, img e next_page_button locations
-
         # Informa o progresso.
         queue.put(['show_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
 
@@ -100,6 +94,8 @@ class DownloadManager:
                 selenium_ma.open_link(self.next_page_link)
             except Exception as error:
                 self.end_process(queue, str(error))
+
+            queue.put(['save_last_link', self.next_page_link])
 
             # Obtem os links das imagens.
             try:
@@ -115,22 +111,27 @@ class DownloadManager:
             if there_is_no_chapter:
                 there_is_no_chapter = False
 
+            # Avisa do progresso.
+            completion_percentage = (current_chapter_index + 1) / num_chapters
+            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+
             if self.chapter != self.final_chapter:
                 try:
                     self.next_page_link = selenium_ma.get_next_page_link(self.next_page_button_location)
                 except Exception as error:
                     error = str(error)
                     if 'Unable to locate element' in error:
-                        error = f'Não foi possivel encontrar o botão para proxima página.'
-                    selenium_ma.close_nav()
-                    self.end_process(queue, error)
+                        error = f'Não há capítulo {self.chapter + 1}.'
+                        queue.put(['show_info', [error]])
+                        # Fecha o navegador.
+                        selenium_ma.close_nav()
+                        break
+                    else:
+                        selenium_ma.close_nav()
+                        self.end_process(queue, error)
 
             # Fecha o navegador.
             selenium_ma.close_nav()
-
-            # Avisa do progresso.
-            completion_percentage = (current_chapter_index + 1) / num_chapters
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
 
             self.chapter += 1
             current_chapter_index += 1

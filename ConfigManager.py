@@ -11,7 +11,7 @@ class ConfigManager:
             # Mangá.
             'manga_name': '',
             'base_link': '',
-            'last_link_opened': '',
+            'last_link': '',
             'initial_chapter': 1,
             'final_chapter': 1,
             'frames_location_by': 'Selecione',
