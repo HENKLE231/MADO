@@ -39,6 +39,7 @@ class DownloadManager:
             :param error: (String) Mensagem de erro.
             Finalisa processo de download e avisa na tela.
         """
+
         error_lines = []
         if 'ERR_INTERNET_DISCONNECTED' in error:
             error = 'Sem internet.'
@@ -63,15 +64,12 @@ class DownloadManager:
         selenium_ma = SeleniumManager()
         system_ma = SystemManager()
 
-        # Salva identificador do processo
-        queue.put(['save_secondary_process_id', SystemManager.get_current_process_id()])
+        # Informa o inicio do processo.
+        queue.put(['show_info', ['Iniciou.'], 'Download'])
 
         # Limpa pasta de arquivos desnecessários.
         unnecessary_files = system_ma.find_files(self.files_dir, [''])
         system_ma.delete(unnecessary_files)
-
-        # Informa o inicio do processo.
-        queue.put(['show_info', ['Iniciou.'], 'Download'])
 
         # Limpa os downloads de imagens ainda não transferidos para pasta de edição.
         unmoved_images = system_ma.find_files(self.download_dir, [f'{self.manga_name}_', '.jpg'], 2)
@@ -86,7 +84,10 @@ class DownloadManager:
 
         while self.chapter <= self.final_chapter:
             # Abre navegador.
-            selenium_ma.open_nav('eager', True)
+            try:
+                selenium_ma.open_nav('eager', headless=True)
+            except Exception as error:
+                self.end_process(queue, str(error))
 
             # Abre o link do capítulo.
             try:
@@ -106,14 +107,12 @@ class DownloadManager:
                     queue.put(['show_info', [error]])
                     selenium_ma.close_nav()
                     break
+                else:
+                    self.end_process(queue, error)
 
-            # Salva existência capitulo.
+            # Salva existência do capitulo.
             if there_is_no_chapter:
                 there_is_no_chapter = False
-
-            # Informa o progresso.
-            completion_percentage = (current_chapter_index + 1) / num_chapters
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
 
             if self.chapter != self.final_chapter:
                 try:
@@ -133,6 +132,10 @@ class DownloadManager:
             # Fecha o navegador.
             selenium_ma.close_nav()
 
+            # Informa o progresso.
+            completion_percentage = (current_chapter_index + 1) / num_chapters
+            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+
             # Itera.
             self.chapter += 1
             current_chapter_index += 1
@@ -141,53 +144,60 @@ class DownloadManager:
         if there_is_no_chapter:
             self.end_process(queue, 'Não há capítulo para ser baixado.')
 
+        # Informa o progresso.
+        queue.put(['show_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
+
         # Configuração para navegador abrir fora da tela.
         size_and_position = [0, 0, system_ma.screen_x, system_ma.screen_y]
 
         # Abre navegador.
         selenium_ma.open_nav(size_and_position=size_and_position)
 
-        # Informa o progresso.
-        queue.put(['show_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
+        # Salva identificador do navegador.
+        queue.put(['save_browser_handle', system_ma.get_current_window_handle()])
 
-        completion_percentage = 0
-        while True:
-            imgs_to_download = [(img_name, link) for img_name, link, downloaded in selenium_ma.imgs_info if not downloaded]
-            for current_img_index, img_info in enumerate(imgs_to_download):
-                img_name, link = img_info
+        # Seleciona imagens não baixadas.
+        imgs_to_download = [(img_name, link) for img_name, link, downloaded in selenium_ma.imgs_info if not downloaded]
 
-                # Abre link.
-                try:
-                    selenium_ma.open_link(link)
-                except Exception as error:
-                    self.end_process(queue, str(error))
+        # Varre informações das imagens.
+        for current_img_index, img_info in enumerate(imgs_to_download):
+            # Desempacota variáveis.
+            img_name, link = img_info
 
-                # Baixa imagem.
-                try:
-                    selenium_ma.download_img(img_name, link)
-                except Exception as error:
-                    self.end_process(queue, str(error))
+            # Abre link.
+            try:
+                selenium_ma.open_link(link)
+            except Exception as error:
+                self.end_process(queue, str(error))
 
-                # Informa o progresso.
-                completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.download_dir)
-                queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+            # Baixa imagem.
+            try:
+                selenium_ma.download_img(img_name, link)
+            except Exception as error:
+                self.end_process(queue, str(error))
 
-                # Se é a última imagem espera 1 segundo antes de fechar o navegador.
-                if current_img_index + 1 == len(selenium_ma.imgs_info):
-                    time.sleep(1)
-            if completion_percentage == 1:
-                break
+            # Informa o progresso.
+            completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.download_dir)
+            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+
+            # Se é a última imagem espera 1 segundo antes de fechar o navegador.
+            if current_img_index + 1 == len(selenium_ma.imgs_info):
+                time.sleep(1)
 
         # Fecha o navegador.
         selenium_ma.close_nav()
 
+        # Salva identificador do navegador.
+        queue.put(['save_browser_handle', 0])
+
         # Informa o progresso.
-        queue.put(['show_info', ['Downloads concluídos.']])
+        queue.put(['show_info', ['Iniciando transferência de imagens para pasta de edição.']])
 
         # Move as imagens para uma pasta adequada.
         patterns = [f'{self.manga_name}_', '.jpg']
         downloaded_imgs = system_ma.find_files(self.download_dir, patterns)
         system_ma.move_files(downloaded_imgs, self.files_dir)
+        downloaded_imgs = system_ma.find_files(self.files_dir, patterns)
 
         # Informa o progresso.
         queue.put(['show_info', ['Imagens movidas para pasta de edição.']])

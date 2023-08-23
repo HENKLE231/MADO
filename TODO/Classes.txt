@@ -24,7 +24,7 @@ Funções:
 Atributos:
   - next_page_link: String.
 Funções: 
-  - end_process(Queue queue, String error: Void;
+  - end_process(Queue queue, String error): Void;
   - start_download(Queue queue): Void.
 
 //GUI
@@ -32,7 +32,9 @@ Funções:
     Atributos:
       - window: instancia TK;
       - title: String;
-      - secondary_process_id: Int;
+      - browser_handler: String;
+      - queue: Queue;
+      - download_process: Process.
       - default_padx: Int;
       - default_pady: Int;
       - previous_frame: String;
@@ -43,6 +45,7 @@ Funções:
       - switch_frame(String next_window): Void;
       - save_config_changes(): Void;
       - save_last_link(): Void;
+      - save_browser_handle(): Void;
       - highlight_fields(Dict de Strings configs_and_warnings): Void;
       - unhighlight(): Void;
       - update_all_fields(): Void.
@@ -55,10 +58,10 @@ Funções:
       - Widgets TK.
     Funções:
       - delete_downloaded_chapters(): Void;
-      - save_secondary_process_id(Int process_id): Void;
       - kill_secondary_process(): Void;
       - verify_fields(): Void;
-      - run(): Void.
+      - run(): Void;
+      - monitor_communication(): Void.
 
     //ConfigFrame
     Atributos:
@@ -129,13 +132,14 @@ Atributos:
   - cwd: String;
   - user_dir: String.
 Funções:
-  - end_process(Int pid): Void;
-  - get_current_process_id(): Int;
   - find_files(String path, Array de Strings patterns, Int to_meet): Array de Strings;
   - delete(Array de String paths): Void;
   - move_files(Array de Strings files, String new_dir): Void;
   - path_exists(String path): boolean;
   - count_files(String path, Array de Strings patterns, Int to_meet): Int.
+  - get_window(String window_name): Int;
+  - get_current_window_handle(): Int;
+  - close_window(Int handle): Void;
 
 //TextManager
 Funções:

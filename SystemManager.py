@@ -1,8 +1,11 @@
-from win32api import GetSystemMetrics
-from TextManager import TextManager
 from pathlib import Path
 import signal
 import os
+import win32api
+from win32api import GetSystemMetrics
+import win32gui
+import win32com.client as com_cli
+from TextManager import TextManager
 
 
 class SystemManager:
@@ -11,22 +14,6 @@ class SystemManager:
         self.screen_y = GetSystemMetrics(1)
         self.cwd = os.getcwd()
         self.user_dir = self.cwd[:self.cwd.index(r'\ '.strip(), self.cwd.index('Users')+6)]
-
-    @staticmethod
-    def end_process(pid):
-        """
-            :param pid: (Int) Identificador do processo (PID).
-            Encerra o Processo.
-        """
-        os.kill(pid, signal.SIGTERM)
-
-    @staticmethod
-    def get_current_process_id():
-        """
-            :return pid: (Int) identificador do processo (PID).
-            Pega o identificador do processo atual.
-        """
-        return os.getpid()
 
     @staticmethod
     def find_files(path, patterns, to_meet=1):
@@ -99,3 +86,28 @@ class SystemManager:
                 # Incrementa numero de arquivos.
                 num_files += 1
         return num_files
+
+    @staticmethod
+    def get_current_window_handle():
+        """
+            :return: (Int) Identificador da janela.
+        """
+        return win32gui.GetForegroundWindow()
+
+    @staticmethod
+    def close_window(handle):
+        """
+            :param handle: (Int) Identificador da janela.
+            Fecha a janela.
+        """
+        # Pega nome da janela.
+        window_name = win32gui.GetWindowText(handle)
+
+        # Verifica existencia da janela.
+        if window_name:
+            # Carrega Shell.
+            wsh = com_cli.Dispatch('WScript.Shell')
+            # Seleciona.
+            wsh.AppActivate(window_name)
+            # Envia o comando Alt+F4.
+            wsh.SendKeys('%{F4}')

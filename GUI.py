@@ -3,11 +3,12 @@ import tkinter as tk
 from tkinter import scrolledtext
 from tkinter.filedialog import askdirectory
 from functools import partial
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, active_children
 from ConfigManager import ConfigManager
 from SystemManager import SystemManager
 from TextManager import TextManager
 from DownloadManager import DownloadManager
+import time
 
 
 class GUI:
@@ -17,7 +18,9 @@ class GUI:
         self.window = tk.Tk()
         self.title = 'Mangá Downloader'
         self.window.title(self.title)
-        self.secondary_process_id = 0
+        self.browser_handle = 0
+        self.queue = Queue()
+        self.download_process = None
         self.default_padx = 2
         self.default_pady = 2
         self.previous_frame = 'home_frame'
@@ -290,11 +293,15 @@ class GUI:
         self.frame_next_page_button_location_value = tk.Frame(self.config_frame)
         self.frame_next_page_button_location_value.columnconfigure(0, weight=1)
         self.frame_next_page_button_location_value.grid(row=12, column=1, sticky='we')
-        self.warning_label_next_page_button_location_value = tk.Label(self.frame_next_page_button_location_value, text='', fg='red')
+        self.warning_label_next_page_button_location_value = tk.Label(
+            self.frame_next_page_button_location_value, text='', fg='red'
+        )
         self.border_next_page_button_location_value = tk.Frame(self.frame_next_page_button_location_value)
         self.border_next_page_button_location_value.columnconfigure(0, weight=1)
         self.border_next_page_button_location_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_next_page_button_location_value = tk.Entry(self.border_next_page_button_location_value, textvariable=self.var_next_page_button_location_value)
+        self.entry_next_page_button_location_value = tk.Entry(
+            self.border_next_page_button_location_value, textvariable=self.var_next_page_button_location_value
+        )
         self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 13.
@@ -479,6 +486,13 @@ class GUI:
         # Salva as configurações.
         self.save_config_changes()
 
+    def save_browser_handle(self, handle):
+        """
+            :param handle: (String) identificador da janela do navegador.
+            Salva o identificador do navegador.
+        """
+        self.browser_handle = handle
+
     def highlight_fields(self, configs_and_warnings):
         """
             :param configs_and_warnings: (Dict) Dicionário com os nomes das variáveis como chaves e
@@ -600,18 +614,30 @@ class GUI:
         self.switch_frame('info_frame')
         self.show_info(deletion_status, 'Exclusão')
 
-    def save_secondary_process_id(self, process_id):
-        """
-            :param process_id: (Int) Identificador do processo.
-            Salva Identificador do processo.
-        """
-        self.secondary_process_id = process_id
-
     def kill_secondary_process(self):
         """
-            Mata o processo secundario.
+            Mata o processo secundário e fecha navegador se ainda aberto.
         """
-        SystemManager.end_process('pid', self.secondary_process_id)
+        # Seleciona subprocessos.
+        active = active_children()
+
+        # Manda encerrar.
+        for child in active:
+            child.terminate()
+
+        # Espera encerramento.
+        for child in active:
+            child.join()
+
+        # Informa do cancelamento.
+        self.show_info(['Processo cancelado.'], 'Cancelado')
+
+        # Muda função do botão dinâmico para voltar à home.
+        self.set_dynamic_button_action('go_home')
+
+        if self.browser_handle:
+            time.sleep(1)
+            SystemManager.close_window(self.browser_handle)
 
     def verify_fields(self):
         """
@@ -706,6 +732,9 @@ class GUI:
         """
             Começa a baixar o mangá.
         """
+        # Limpa identificador do navegador.
+        self.browser_handle = 0
+
         # Instancia classe necessária.
         download_ma = DownloadManager()
 
@@ -715,16 +744,23 @@ class GUI:
         # Exibe frame de informações.
         self.switch_frame('info_frame')
 
-        # Instancia Queue para comunicação entre processos.
-        queue = Queue()
-        download_process = Process(target=download_ma.start_download, args=(queue,))
+        self.download_process = Process(target=download_ma.start_download, args=(self.queue,))
 
         # Inicia download.
-        download_process.start()
+        self.download_process.start()
 
-        # Verifica constantemente a comunicação com o outro processo.
+        # Monitora a comunicação com o outro processo.
+        self.monitor_communication()
+
+        # Muda função do botão dinâmico para voltar à home.
+        self.set_dynamic_button_action('go_home')
+
+    def monitor_communication(self):
+        """
+            Monitora comunição com processo paralelo.
+        """
         while True:
-            function = queue.get()
+            function = self.queue.get()
             func_name = function[0]
             param1 = None
             param2 = None
@@ -734,8 +770,10 @@ class GUI:
                 param2 = function[2]
 
             match func_name:
-                case 'save_secondary_process_id':
-                    self.save_secondary_process_id(param1)
+                case 'save_browser_handle':
+                    self.save_browser_handle(param1)
+                case 'save_last_link':
+                    self.save_last_link(param1)
                 case 'show_info':
                     if param2:
                         self.show_info(param1, param2)
@@ -746,18 +784,13 @@ class GUI:
                         self.update_last_lines(param1, param2)
                     else:
                         self.update_last_lines(param1)
-                case 'save_last_link':
-                    self.save_last_link(param1)
                 case 'kill_secondary_process':
                     self.kill_secondary_process()
                     break
                 case 'end':
                     break
 
-        # Muda função do botão dinâmico para voltar à home.
-        self.set_dynamic_button_action('go_home')
-
-    # =======================================================================================================
+    # ==================================================================================================================
     # Funções do ConfigFrame.
     @staticmethod
     def select_dir(title, variable):
@@ -797,7 +830,7 @@ class GUI:
         self.unhighlight()
         self.update_all_fields()
 
-    # =======================================================================================================
+    # ==================================================================================================================
     # Funções do InfoFrame.
     def execute_dynamic_button_action(self):
         """
@@ -808,13 +841,7 @@ class GUI:
             self.clear_info()
             self.switch_frame('home_frame')
         elif self.dynamic_button_action == 'cancel':
-            # TODO ATUALIZAR, SALVANDO NOME DA JANELA ABERTA E MANDANDO FECHAR
-            # Mata processo secundário.
-            self.kill_secondary_process()
-            # Informa do cancelamento.
-            self.show_info(['Processo cancelado.'], 'Cancelado')
-            # Muda função do botão dinâmico para voltar à home.
-            self.set_dynamic_button_action('go_home')
+            self.queue.put(['kill_secondary_process'])
 
     def set_dynamic_button_action(self, action):
         """
