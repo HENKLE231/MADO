@@ -59,7 +59,7 @@ Funções:
     Funções:
       - delete_downloaded_chapters(): Void;
       - kill_secondary_process(): Void;
-      - verify_fields(): Void;
+      - validate_fields(): Void;
       - run(): Void;
       - monitor_communication(): Void.
 

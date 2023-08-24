@@ -75,7 +75,7 @@ class GUI:
         command = partial(self.switch_frame, 'config_frame')
         self.button_config = tk.Button(self.home_frame, text='Configurações', command=command)
         self.button_config.grid(row=3, column=1, padx=3, pady=3, sticky='nswe')
-        command = partial(self.verify_fields)
+        command = partial(self.validate_fields)
         self.button_run = tk.Button(self.home_frame, text='Baixar', command=command)
         self.button_run.grid(row=3, column=2, padx=3, pady=3, sticky='nswe')
 
@@ -559,7 +559,7 @@ class GUI:
         for config_name, field in self.config_fields.items():
             field['var'].set(config_ma.config_list[config_name])
 
-    # =======================================================================================================
+    # ==================================================================================================================
     # Funções do HomeFrame.
     def delete_downloaded_chapters(self):
         """
@@ -639,7 +639,7 @@ class GUI:
             time.sleep(1)
             SystemManager.close_window(self.browser_handle)
 
-    def verify_fields(self):
+    def validate_fields(self):
         """
             Verifica se há as informações necessárias para realizar os downloads.
         """
