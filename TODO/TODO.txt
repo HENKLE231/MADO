@@ -1,3 +1,0 @@
-// Geral.
-- Criar possíbilidade de salvar várias configurações. Podendo carrega-las escolhendo
-em uma nova página a ser exibida antes da home.
