@@ -41,7 +41,7 @@ class TextManager:
         """
             :param lines: (Array de Strings) Lista com as linhas de texto a serem formatadas.
             :param max_length: (Int) Número máximo de caracteres por linha.
-            :return: (Array de Strings) Lista de linhas respeitando o comprimento máximo.
+            :return: (Strings) Texto com quebras de linha respeitando o comprimento máximo.
         """
         formatted_lines = []
         there_were_changes = True
@@ -72,7 +72,16 @@ class TextManager:
                 else:
                     # Linha está nas normas
                     formatted_lines.append(line)
-        return formatted_lines
+
+        # Transforma linhas em um texto
+        formatted_text = ''
+        for i, line in enumerate(formatted_lines):
+            if i:
+                formatted_text += f'\n{line}'
+            else:
+                formatted_text += line
+
+        return formatted_text
 
     @staticmethod
     def get_last_piece_of_path(path):

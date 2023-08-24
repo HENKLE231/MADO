@@ -1,8 +1,8 @@
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
-last_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
+last_link=https://manhuaplus.com/manga/martial-peak/chapter-2516/
 initial_chapter=2515
-final_chapter=2520
+final_chapter=2516
 frames_location_by=id
 frames_location_value=chapter-video-frame
 imgs_location_by=tag name

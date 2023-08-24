@@ -96,7 +96,7 @@ Funções:
     Funções:
       - execute_dynamic_button_action(): Void;
       - set_dynamic_button_action(String action): Void;
-      - show_info(Array de String info_lines, String info_title): Void;
+      - display_info(Array de String info_lines, String info_title): Void;
       - update_last_lines(Array de String info_lines, Int lines_to_update): Void;
       - get_info(): Array de Strings;
       - clear_info(): Void.
@@ -145,7 +145,7 @@ Funções:
 Funções:
   - get_last_incident_index(String text, String character): Int;
   - get_index_of_what_comes_last(String text, Array de string characters): Int;
-  - format_text(Array de String lines, Int max_length): Array de Strings;
+  - format_text(Array de String lines, Int max_length): String;
   - get_last_piece_of_path(String path): String.
   - find_patterns(String text, Array de Strings patterns, Int to_meet):
 

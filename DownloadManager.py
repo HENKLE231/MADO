@@ -51,7 +51,7 @@ class DownloadManager:
             error_lines.append(error)
 
         # Interrompe o processo
-        queue.put(['show_info', error_lines, 'Erro!'])
+        queue.put(['display_info', error_lines, 'Erro!'])
         queue.put(['kill_secondary_process'])
 
     def start_download(self, queue):
@@ -65,7 +65,7 @@ class DownloadManager:
         system_ma = SystemManager()
 
         # Informa o inicio do processo.
-        queue.put(['show_info', ['Iniciou.'], 'Download'])
+        queue.put(['display_info', ['Iniciou.'], 'Download'])
 
         # Limpa pasta de arquivos desnecessários.
         unnecessary_files = system_ma.find_files(self.files_dir, [''])
@@ -76,7 +76,7 @@ class DownloadManager:
         system_ma.delete(unmoved_images)
 
         # Informa o progresso.
-        queue.put(['show_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
+        queue.put(['display_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
 
         there_is_no_chapter = True
         num_chapters = self.final_chapter - self.chapter + 1
@@ -104,7 +104,7 @@ class DownloadManager:
                 error = str(error)
                 if 'Unable to locate element' in error:
                     error = f'Não há capítulo {self.chapter}.'
-                    queue.put(['show_info', [error]])
+                    queue.put(['display_info', [error]])
                     selenium_ma.close_nav()
                     break
                 else:
@@ -121,7 +121,7 @@ class DownloadManager:
                     error = str(error)
                     if 'Unable to locate element' in error:
                         error = f'Não há capítulo {self.chapter + 1}.'
-                        queue.put(['show_info', [error]])
+                        queue.put(['display_info', [error]])
                         # Fecha o navegador.
                         selenium_ma.close_nav()
                         break
@@ -145,7 +145,7 @@ class DownloadManager:
             self.end_process(queue, 'Não há capítulo para ser baixado.')
 
         # Informa o progresso.
-        queue.put(['show_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
+        queue.put(['display_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
 
         # Configuração para navegador abrir fora da tela.
         size_and_position = [0, 0, system_ma.screen_x, system_ma.screen_y]
@@ -191,7 +191,7 @@ class DownloadManager:
         queue.put(['save_browser_handle', 0])
 
         # Informa o progresso.
-        queue.put(['show_info', ['Iniciando transferência de imagens para pasta de edição.']])
+        queue.put(['display_info', ['Iniciando transferência de imagens para pasta de edição.']])
 
         # Move as imagens para uma pasta adequada.
         patterns = [f'{self.manga_name}_', '.jpg']
@@ -200,13 +200,13 @@ class DownloadManager:
         downloaded_imgs = system_ma.find_files(self.files_dir, patterns)
 
         # Informa o progresso.
-        queue.put(['show_info', ['Imagens movidas para pasta de edição.']])
+        queue.put(['display_info', ['Imagens movidas para pasta de edição.']])
 
         # Obtem o nome das imagens.
         num_imgs = len(downloaded_imgs)
 
         # Informa o progresso.
-        queue.put(['show_info', ['Iniciando conversão para PDF.', f'Progresso: {0:.2%}']])
+        queue.put(['display_info', ['Iniciando conversão para PDF.', f'Progresso: {0:.2%}']])
 
         for current_img_index, img_path in enumerate(downloaded_imgs):
             # Converte imagens para PDF.
@@ -227,7 +227,7 @@ class DownloadManager:
         num_chapters = len(chapters)
 
         # Informa o progresso.
-        queue.put(['show_info', ['Iniciando compilação dos capítulos.', f'Progresso: {0:.2%}']])
+        queue.put(['display_info', ['Iniciando compilação dos capítulos.', f'Progresso: {0:.2%}']])
 
         for chapter_index, chapter in enumerate(chapters):
             # Seleciona imagens pertencentes a esse capítulo.
@@ -248,7 +248,7 @@ class DownloadManager:
         system_ma.delete(unnecessary_files)
 
         # Informa o progresso.
-        queue.put(['show_info', ['Concluído com sucesso!'], 'Concluído!'])
+        queue.put(['display_info', ['Concluído com sucesso!'], 'Concluído!'])
 
         # Encerra processo de download.
         queue.put(['end'])

@@ -1,6 +1,6 @@
 from pathlib import Path
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, font
 from tkinter.filedialog import askdirectory
 from functools import partial
 from multiprocessing import Process, Queue, active_children
@@ -23,10 +23,52 @@ class GUI:
         self.download_process = None
         self.default_padx = 2
         self.default_pady = 2
-        self.previous_frame = 'home_frame'
+        self.previous_frame = ''
         self.current_frame = ''
         self.app_frames = {}
         self.config_fields = {}
+
+        # Configuração de fonte.
+        self.defaultFont = font.nametofont("TkDefaultFont")
+        self.defaultFont.configure(family='Verdana', size=9)
+
+        # ==============================================================================================================
+        # MenuFrame.
+        # Variáveis.
+        self.menu_frame = tk.Frame(self.window)
+
+        # Elementos.
+        # Linha 0.
+        self.label_menu_title = tk.Label(self.menu_frame, text='Seleção de Configuração')
+        self.label_menu_title.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
+
+        # Linha 1.
+        command = partial(print, 'Carregar Última')
+        self.dynamic_button = tk.Button(self.menu_frame, text='Carregar Última', command=command)
+        self.dynamic_button.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+        # Linha 2.
+        command = partial(print, 'Selecionar')
+        self.dynamic_button = tk.Button(self.menu_frame, text='Selecionar', command=command)
+        self.dynamic_button.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+        # Linha 3.
+        command = partial(print, 'Criar')
+        self.dynamic_button = tk.Button(self.menu_frame, text='Criar', command=command)
+        self.dynamic_button.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+        # Linha 4.
+        command = partial(print, 'Deletar')
+        self.dynamic_button = tk.Button(self.menu_frame, text='Deletar', command=command)
+        self.dynamic_button.grid(row=4, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+        # Linha 5.
+        command = partial(self.close_app)
+        self.dynamic_button = tk.Button(self.menu_frame, text='Sair', command=command)
+        self.dynamic_button.grid(row=5, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+        # Adiciona à lista de janelas existentes.
+        self.app_frames['menu_frame'] = self.menu_frame
 
         # ==============================================================================================================
         # HomeFrame.
@@ -34,6 +76,7 @@ class GUI:
         self.home_frame = tk.Frame(self.window)
         self.var_initial_chapter = tk.StringVar()
         self.var_final_chapter = tk.StringVar()
+        self.chapters_files = []
 
         # Elementos.
         # Linha 0.
@@ -67,9 +110,9 @@ class GUI:
         self.entry_final_chapter.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 3.
-        command = partial(self.delete_downloaded_chapters)
+        command = partial(self.validate_to_delete_downloaded_chapters)
         self.button_config = tk.Button(
-            self.home_frame, text='Excluir capítulos\nbaixados', command=command
+            self.home_frame, text='Excluir Downloads', command=command
         )
         self.button_config.grid(row=3, column=0, padx=3, pady=3, sticky='nswe')
         command = partial(self.switch_frame, 'config_frame')
@@ -134,7 +177,7 @@ class GUI:
         self.entry_manga_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 2.
-        self.label_base_link = tk.Label(self.config_frame, text='Link do capítulo inicial:', anchor='e')
+        self.label_base_link = tk.Label(self.config_frame, text='Link do Capítulo Inicial:', anchor='e')
         self.label_base_link.grid(row=2, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_base_link = tk.Frame(self.config_frame)
         self.frame_base_link.columnconfigure(0, weight=1)
@@ -150,7 +193,7 @@ class GUI:
         self.button_base_link.grid(row=2, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 3.
-        self.label_last_link = tk.Label(self.config_frame, text='Último link aberto:', anchor='e')
+        self.label_last_link = tk.Label(self.config_frame, text='Último Link Aberto:', anchor='e')
         self.label_last_link.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_last_link = tk.Frame(self.config_frame)
         self.frame_last_link.columnconfigure(0, weight=1)
@@ -162,11 +205,11 @@ class GUI:
         self.entry_last_link = tk.Entry(self.border_last_link, textvariable=self.var_last_link)
         self.entry_last_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
         command = partial(self.copy_last_link_to_base_link)
-        self.button_last_link = tk.Button(self.config_frame, text='Colar a cima', command=command)
+        self.button_last_link = tk.Button(self.config_frame, text='Colar Acima', command=command)
         self.button_last_link.grid(row=3, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 4.
-        self.label_final_dir = tk.Label(self.config_frame, text='Pasta final:', anchor='e')
+        self.label_final_dir = tk.Label(self.config_frame, text='Pasta Final:', anchor='e')
         self.label_final_dir.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_final_dir = tk.Frame(self.config_frame)
         self.frame_final_dir.columnconfigure(0, weight=1)
@@ -214,7 +257,7 @@ class GUI:
         self.button_files_dir.grid(row=6, column=2, padx=self.default_padx, sticky='swe')
 
         # Linha 7.
-        self.label_frames_location_by = tk.Label(self.config_frame, text='Procurar quadros por:', anchor='e')
+        self.label_frames_location_by = tk.Label(self.config_frame, text='Quadros:', anchor='e')
         self.label_frames_location_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_frames_location_by = tk.Frame(self.config_frame)
         self.frame_frames_location_by.columnconfigure(0, weight=1)
@@ -243,7 +286,7 @@ class GUI:
         self.entry_frames_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 9.
-        self.label_imgs_location_by = tk.Label(self.config_frame, text='Procurar imagens por:', anchor='e')
+        self.label_imgs_location_by = tk.Label(self.config_frame, text='Imagens:', anchor='e')
         self.label_imgs_location_by.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_imgs_location_by = tk.Frame(self.config_frame)
         self.frame_imgs_location_by.columnconfigure(0, weight=1)
@@ -272,7 +315,7 @@ class GUI:
         self.entry_imgs_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 11.
-        self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Procurar botão de avançar por:', anchor='e')
+        self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Botão de Avançar:', anchor='e')
         self.label_next_page_button_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
         self.frame_next_page_button_location_by = tk.Frame(self.config_frame)
         self.frame_next_page_button_location_by.columnconfigure(0, weight=1)
@@ -307,10 +350,10 @@ class GUI:
         # Linha 13.
         self.bottom_buttons_frame = tk.Frame(self.config_frame)
         self.bottom_buttons_frame.grid(row=13, column=1, padx=2)
-        self.space = tk.Label(self.bottom_buttons_frame, text='')
-        self.space.grid(row=0, column=0, padx=100)
+        self.info_frame_space = tk.Label(self.bottom_buttons_frame, text='')
+        self.info_frame_space.grid(row=0, column=0, padx=100)
         command = partial(self.reset_configs)
-        self.button_reset = tk.Button(self.bottom_buttons_frame, text='Configuração padrão', command=command)
+        self.button_reset = tk.Button(self.bottom_buttons_frame, text='Configuração Padrão', command=command)
         self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
         command = partial(self.switch_frame, 'home_frame')
         self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
@@ -406,12 +449,41 @@ class GUI:
         self.app_frames['config_frame'] = self.config_frame
 
         # ==============================================================================================================
+        # ConfirmationFrame.
+        # Variáveis.
+        self.confirmation_frame = tk.Frame(self.window)
+        self.confirmation_frame_max_char_per_line = 50
+        self.function_awaiting_confirmation = ''
+
+        # Elementos.
+        # Linha 0.
+        self.label_confirmation_title = tk.Label(self.confirmation_frame)
+        self.label_confirmation_title.grid(row=0, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+
+        # Linha 1.
+        self.label_confirmation_description = tk.Label(self.confirmation_frame, anchor='w')
+        self.label_confirmation_description.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+
+        # Linha 2.
+        self.info_frame_space = tk.Label(self.confirmation_frame, text='')
+        self.info_frame_space.grid(row=2, column=0, padx=50)
+        command = partial(self.cancel)
+        self.dynamic_button = tk.Button(self.confirmation_frame, text='Cancelar', command=command)
+        self.dynamic_button.grid(row=2, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.execute_awaiting_function)
+        self.dynamic_button = tk.Button(self.confirmation_frame, text='Confirmar', command=command)
+        self.dynamic_button.grid(row=2, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Adiciona à lista de janelas existentes.
+        self.app_frames['confirmation_frame'] = self.confirmation_frame
+
+        # ==============================================================================================================
         # InfoFrame.
         # Variáveis.
         self.info_frame = tk.Frame(self.window)
         self.num_info_lines = 7
-        self.max_char_per_line = 50
-        self.dynamic_button_action = 'go_back'
+        self.info_frame_max_char_per_line = 50
+        self.dynamic_button_action = 'go_home'
         self.dynamic_button_text = 'Voltar'
 
         # Elementos.
@@ -421,22 +493,22 @@ class GUI:
 
         # Linha 1.
         self.scrolled_textbox = scrolledtext.ScrolledText(
-            self.info_frame, width=self.max_char_per_line, height=self.num_info_lines, cursor='arrow'
+            self.info_frame, width=self.info_frame_max_char_per_line, height=self.num_info_lines, cursor='arrow'
         )
-        self.scrolled_textbox.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+        self.scrolled_textbox.grid(row=1, column=0, columnspan=3, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 2.
         command = partial(self.execute_dynamic_button_action)
         self.dynamic_button = tk.Button(self.info_frame, text=self.dynamic_button_text, command=command)
-        self.dynamic_button.grid(row=2, column=2, padx=5, pady=5, sticky='nswe')
+        self.dynamic_button.grid(row=2, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Adiciona à lista de janelas existentes.
         self.app_frames['info_frame'] = self.info_frame
 
-        # Exibe tela inicial
-        self.switch_frame('home_frame')
-
         # ==============================================================================================================
+        # Exibe tela inicial
+        self.switch_frame('menu_frame')
+
         # Carrega configurações.
         self.update_all_fields()
 
@@ -444,11 +516,10 @@ class GUI:
     # Funções gerais.
     def switch_frame(self, next_frame):
         """
-            :param next_frame: (String) Nome do próximo frame.
             Exibe o frame requerido.
         """
-        # Salva o nome do frame atual caso seja necessário voltar.
-        self.previous_frame = self.current_frame
+        if next_frame == 'confirmation_frame':
+            self.previous_frame = self.current_frame
 
         # Esconde frame atualmente exibido.
         if self.current_frame:
@@ -560,8 +631,13 @@ class GUI:
             field['var'].set(config_ma.config_list[config_name])
 
     # ==================================================================================================================
+    # Funções do MenuFrame.
+    def close_app(self):
+        self.window.destroy()
+
+    # ==================================================================================================================
     # Funções do HomeFrame.
-    def delete_downloaded_chapters(self):
+    def validate_to_delete_downloaded_chapters(self):
         """
             Deleta arquivos da pasta final que correspondem ao nome e formato dos arquivos do mangá.
         """
@@ -593,26 +669,48 @@ class GUI:
 
         # Verifica o número de capítulos armazenados.
         patterns = [r'{} - '.format(manga_name), '.pdf']
-        chapters_files = system_ma.find_files(final_dir, patterns, 2)
-        num_files = len(chapters_files)
+        self.chapters_files = system_ma.find_files(final_dir, patterns, 2)
+        num_files = len(self.chapters_files)
 
         if num_files == 0:
             # Monta frase de aviso, onde que não capítulos.
             deletion_status = ['Não há capítulos para serem excluidos.']
-        else:
-            # Deleta capítulos.
-            system_ma.delete(chapters_files)
 
-            addition = ''
-            if num_files > 1:
-                addition = 's'
-            deletion_status = [
-                f'Exclusão de {num_files} capítulo{addition} realizada com sucesso!'
-            ]
+            # Exibe o frame de informações com o resultado da exclusão.
+            self.switch_frame('info_frame')
+            self.display_info(deletion_status, 'Exclusão')
+        else:
+            self.function_awaiting_confirmation = 'delete_chapters'
+            self.switch_frame('confirmation_frame')
+            self.display_confirmation_info(
+                'Exclusão de capítulos', ['Os arquivos serão excluídos permanentemente.', 'Você tem certeza?']
+            )
+
+    def delete_chapters(self):
+        """
+            Excluí capítulos baixados.
+        """
+        # Instancia classe necessária.
+        system_ma = SystemManager()
+
+        # Deleta capítulos.
+        system_ma.delete(self.chapters_files)
+
+        # Conta o número de arquivos.
+        num_files = len(self.chapters_files)
+        addition = ''
+        if num_files > 1:
+            addition = 's'
+        deletion_status = [
+            f'Exclusão de {num_files} capítulo{addition} realizada com sucesso!'
+        ]
+
+        # Limpa variável.
+        self.chapters_files = []
 
         # Exibe o frame de informações com o resultado da exclusão.
         self.switch_frame('info_frame')
-        self.show_info(deletion_status, 'Exclusão')
+        self.display_info(deletion_status, 'Exclusão')
 
     def kill_secondary_process(self):
         """
@@ -630,7 +728,7 @@ class GUI:
             child.join()
 
         # Informa do cancelamento.
-        self.show_info(['Processo cancelado.'], 'Cancelado')
+        self.display_info(['Processo cancelado.'], 'Cancelado')
 
         # Muda função do botão dinâmico para voltar à home.
         self.set_dynamic_button_action('go_home')
@@ -774,11 +872,11 @@ class GUI:
                     self.save_browser_handle(param1)
                 case 'save_last_link':
                     self.save_last_link(param1)
-                case 'show_info':
+                case 'display_info':
                     if param2:
-                        self.show_info(param1, param2)
+                        self.display_info(param1, param2)
                     else:
-                        self.show_info(param1)
+                        self.display_info(param1)
                 case 'update_last_lines':
                     if param2:
                         self.update_last_lines(param1, param2)
@@ -831,6 +929,47 @@ class GUI:
         self.update_all_fields()
 
     # ==================================================================================================================
+    # Funções do ConfirmationFrame.
+    def display_confirmation_info(self, title, description):
+        """
+            :param title: (String) Título do frame de confirmação.
+            :param description: (Array de Strings) Linhas da descrição do frame de confirmação.
+            Exibe informações no ConfirmationFrame.
+        """
+        # Instancia classe necessária.
+        text_formatter = TextManager()
+
+        # Formata o título.
+        formatted_title = text_formatter.format_text([title], self.confirmation_frame_max_char_per_line)
+
+        # Atribui o título.
+        self.label_confirmation_title['text'] = formatted_title
+
+        # Formata a descrição.
+        formatted_description = text_formatter.format_text(description, self.confirmation_frame_max_char_per_line)
+
+        # Atribui a descrição.
+        self.label_confirmation_description['text'] = formatted_description
+
+        # Atualiza tela.
+        self.window.update()
+
+    def cancel(self):
+        # Limpa variável.
+        self.function_awaiting_confirmation = ''
+
+        # Volta para o frame anterior.
+        self.switch_frame(self.previous_frame)
+
+    def execute_awaiting_function(self):
+        """
+            Executa função esperando por confirmação.
+        """
+        match self.function_awaiting_confirmation:
+            case 'delete_chapters':
+                self.delete_chapters()
+
+    # ==================================================================================================================
     # Funções do InfoFrame.
     def execute_dynamic_button_action(self):
         """
@@ -854,7 +993,7 @@ class GUI:
             self.dynamic_button_action = 'go_home'
             self.dynamic_button['text'] = 'Voltar'
 
-    def show_info(self, info_lines, info_title=''):
+    def display_info(self, info_lines, info_title=''):
         """
             :param info_lines: (Array de Strings) Lista com linhas a serem exibidas.
             :param info_title: (String) Título a ser exibido na janela de informações.
@@ -867,20 +1006,19 @@ class GUI:
         if info_title:
             self.label_info_title['text'] = info_title
 
-        # Verifica o número de linhas exibidas.
-        num_lines = len(self.get_info())
-
         if info_lines:
             # Formata texto.
-            info_lines = text_formatter.format_text(info_lines, self.max_char_per_line)
+            info_text = text_formatter.format_text(info_lines, self.info_frame_max_char_per_line)
+
+            # Verifica o número de linhas exibidas.
+            num_lines = len(self.get_info())
+
+            if num_lines > 1:
+                info_text = '\n' + info_text
 
             # Exibe texto.
             self.scrolled_textbox['state'] = 'normal'
-            for i, line in enumerate(info_lines):
-                if num_lines > 1 or i > 0:
-                    self.scrolled_textbox.insert('end', f'\n{line}')
-                else:
-                    self.scrolled_textbox.insert('end', f'{line}')
+            self.scrolled_textbox.insert('end', info_text)
             self.scrolled_textbox['state'] = 'disabled'
 
             # Movimenta scrool para baixo.
@@ -912,7 +1050,7 @@ class GUI:
         self.scrolled_textbox['state'] = 'disabled'
 
         # Exibe novas linhas.
-        self.show_info(info_lines)
+        self.display_info(info_lines)
 
     def get_info(self):
         """
