@@ -4,9 +4,14 @@ import os
 
 
 class ConfigManager:
-    def __init__(self):
+    def __init__(self, config_set_name):
+        """
+            :param config_set_name: (String) Nome do conjunto de configurações.
+        """
         # Instancia classe necessária.
         system_ma = SystemMa()
+
+        self.config_set_name = config_set_name
 
         self.config_list = {
             # Mangá.
@@ -42,6 +47,9 @@ class ConfigManager:
             config_lines = config_txt.readlines()
             config_txt.close()
             config_lines = [line.replace('\n', '') for line in config_lines]
+
+            # Procurando conjunto de configuração
+            # TODO: CONTINUAR.
 
             # Atribui valores.
             for config_key in self.config_list.keys():

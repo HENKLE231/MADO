@@ -1,3 +1,19 @@
 // Geral.
 - Criar possíbilidade de salvar várias configurações. Podendo carrega-las escolhendo
 em uma nova página a ser exibida antes da home.
+
+manga_name=Martial Peak
+base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
+last_link=https://manhuaplus.com/manga/martial-peak/chapter-2516/
+initial_chapter=2515
+final_chapter=2516
+frames_location_by=id
+frames_location_value=chapter-video-frame
+imgs_location_by=tag name
+imgs_location_value=img
+next_page_button_location_by=class name
+next_page_button_location_value=next_page
+download_dir=C:\Users\Henrique\Downloads
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+final_dir=C:\Users\Henrique\Desktop\Excluir
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
