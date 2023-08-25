@@ -1,3 +1,3 @@
-num = 0
+num = None
 if not num:
     print('é')
