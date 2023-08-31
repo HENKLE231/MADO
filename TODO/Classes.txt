@@ -1,5 +1,7 @@
-//ConfigManager
+//ConfigManager(String config_set_name (opcional))
 Atributos:
+  - config_set_name: String;
+  - config_list: Array de String com as variáveis abaixo.
   - manga_name: String;
   - base_link: String;
   - last_link: String
@@ -16,9 +18,18 @@ Atributos:
   - final_dir: String;
   - config_file: String.
 Funções:
-  - load_configs(): Void;
   - edit_config(String config_name, String value): Void;
-  - save_configs(): Void.
+  - load_configs(String config_set_name (opcional)): Void;
+  - add_config_set(): Void;
+  - save_config_set(): Void;
+  - rename_config_set(String new_name, String current_name (opcional)): Void;
+  - delete_config_set(String config_Set_name (opcional));
+  - get_config_lines(): Array de Strings;
+  - write_in_config_file(Array de Strings lines): Void;
+  - config_set_exist(): Boolean;
+  - find_config_set(String config_set_name, Array de strings config_lines): 2 Ints;
+  - save_last_config_set_loaded(String config_set_name): Void;
+  - get_last_config_set_loaded(): String.
 
 //DownloadManager
 Atributos:

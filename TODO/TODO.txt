@@ -2,6 +2,10 @@
 - Criar possíbilidade de salvar várias configurações. Podendo carrega-las escolhendo
 em uma nova página a ser exibida antes da home.
 
+// GUI
+- Verificar edição do capitulo inicial para mudança no link base
+
+
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
 last_link=https://manhuaplus.com/manga/martial-peak/chapter-2516/
