@@ -53,7 +53,7 @@ class GUI:
         self.dynamic_button.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 3.
-        command = partial(print, 'Criar')
+        command = partial(self.create_config_set)
         self.dynamic_button = tk.Button(self.menu_frame, text='Criar', command=command)
         self.dynamic_button.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
@@ -69,6 +69,40 @@ class GUI:
 
         # Adiciona à lista de janelas existentes.
         self.app_frames['menu_frame'] = self.menu_frame
+
+        # ==============================================================================================================
+        # ConfigSetCreateFrame.
+        # Variáveis.
+        self.config_set_creator_frame = tk.Frame(self.window)
+        self.var_config_set_title
+
+        # Elementos.
+        # Linha 0.
+        self.label_menu_title = tk.Label(self.menu_frame, text='Criação configuração')
+        self.label_menu_title.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
+        
+        # Linha 1.
+        self.label_config_set_title = tk.Label(self.config_set_creator_frame, text='Título:', anchor='e')
+        self.label_config_set_title.grid(row=1, column=0, padx=5, pady=1, sticky='nswe')
+        self.frame_config_set_title = tk.Frame(self.config_set_creator_frame)
+        self.frame_config_set_title.columnconfigure(0, weight=1)
+        self.frame_config_set_title.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
+        self.warning_label_config_set_title = tk.Label(self.frame_config_set_title, text='', fg='red')
+        self.border_config_set_title = tk.Frame(self.frame_config_set_title)
+        self.border_config_set_title.columnconfigure(0, weight=1)
+        self.border_config_set_title.grid(row=1, column=0, sticky='nswe')
+        self.entry_config_set_title = tk.Entry(self.border_config_set_title, textvariable=self.var_config_set_title)
+        self.entry_config_set_title.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+
+        # Linha 1.
+        command = partial(print, 'Carregar Última')
+        self.dynamic_button = tk.Button(self.config_set_creator_frame, text='Carregar Última', command=command)
+        self.dynamic_button.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+
+        # Adiciona à lista de janelas existentes.
+        self.app_frames['config_set_creator_frame'] = self.config_set_creator_frame
 
         # ==============================================================================================================
         # HomeFrame.
@@ -535,16 +569,18 @@ class GUI:
         """
             Salva variáveis de configuração.
         """
-        # Instancia a classe de Configurações.
-        config_ma = ConfigManager()
-
-        # Varre os campos.
-        for config_name, widgets in self.config_fields.items():
-            # Edita a configuração.
-            config_ma.edit_config(config_name, widgets['var'].get())
-
-        # Salva.
-        config_ma.save_configs()
+        # # Instancia a classe de Configurações.
+        # config_ma = ConfigManager()
+        #
+        # # Varre os campos.
+        # for config_name, widgets in self.config_fields.items():
+        #     # Edita a configuração.
+        #     config_ma.edit_config(config_name, widgets['var'].get())
+        #
+        # # Salva.
+        # config_ma.save_configs()
+        # TODO: ALTERAR
+        pass
 
     def save_last_link(self, link):
         """
@@ -626,14 +662,20 @@ class GUI:
         """
             Atualiza todos os campos de configurações.
         """
-        config_ma = ConfigManager()
-        for config_name, field in self.config_fields.items():
-            field['var'].set(config_ma.config_list[config_name])
+        # config_ma = ConfigManager()
+        # for config_name, field in self.config_fields.items():
+        #     field['var'].set(config_ma.config_list[config_name])
+        # TODO: ALTERAR
+        pass
 
     # ==================================================================================================================
     # Funções do MenuFrame.
     def close_app(self):
         self.window.destroy()
+
+    def create_config_set(self):
+        # TODO: DESENVOLVER
+        pass
 
     # ==================================================================================================================
     # Funções do HomeFrame.
@@ -644,6 +686,7 @@ class GUI:
         # Salva informações atuais.
         self.save_config_changes()
 
+        # TODO: ALTERAR
         # Instancia classes necessárias.
         config_ma = ConfigManager()
         system_ma = SystemManager()
@@ -744,6 +787,7 @@ class GUI:
         # Salva informações atuais.
         self.save_config_changes()
 
+        # TODO: ALTERAR
         # Instancia classes necessárias.
         config_ma = ConfigManager()
         system_ma = SystemManager()
@@ -922,11 +966,13 @@ class GUI:
         """
             Excluí arquivo de configurações e retorna às configurações iniciais.
         """
-        config_ma = ConfigManager()
-        system_ma = SystemManager()
-        system_ma.delete([config_ma.config_list['config_file']])
-        self.unhighlight()
-        self.update_all_fields()
+        # TODO: ALTERAR
+        pass
+        # config_ma = ConfigManager()
+        # system_ma = SystemManager()
+        # system_ma.delete([config_ma.config_list['config_file']])
+        # self.unhighlight()
+        # self.update_all_fields()
 
     # ==================================================================================================================
     # Funções do ConfirmationFrame.

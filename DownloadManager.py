@@ -9,6 +9,7 @@ class DownloadManager:
     def __init__(self):
         # Instancia classe necessária.
         config_ma = ConfigManager()
+        # TODO: ALTERAR
 
         # Cria e carrega variáveis.
         self.manga_name = config_ma.config_list['manga_name']
