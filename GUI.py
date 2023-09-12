@@ -1,3 +1,4 @@
+import tkinter
 from pathlib import Path
 import tkinter as tk
 from tkinter import scrolledtext, font
@@ -16,17 +17,41 @@ class GUI:
         # RootWindow.
         # Variáveis.
         self.window = tk.Tk()
-        self.title = 'Mangá Downloader'
+        self.title = 'MADO'
         self.window.title(self.title)
         self.browser_handle = 0
         self.queue = Queue()
         self.download_process = None
         self.default_padx = 2
         self.default_pady = 2
-        self.previous_frame = ''
-        self.current_frame = ''
+        self.selected_config_set = ''
+        self.current_config_set = ''
+        self.awaiting_function = ''
+        self.bread_crumbs = []
         self.app_frames = {}
         self.config_fields = {}
+        self.configs_for_download = [
+            'manga_name',
+            'initial_chapter',
+            'final_chapter',
+            'base_link',
+            'last_link',
+            'final_dir',
+            'download_dir',
+            'files_dir',
+            'frames_location_by',
+            'frames_location_value',
+            'imgs_location_by',
+            'imgs_location_value',
+            'next_page_button_location_by',
+            'next_page_button_location_value'
+        ]
+
+        # Instancia classe de configuração.
+        self.config_ma = ConfigManager()
+
+        # Instancia classe de manipulação do sistema.
+        self.system_ma = SystemManager()
 
         # Configuração de fonte.
         self.defaultFont = font.nametofont("TkDefaultFont")
@@ -39,70 +64,146 @@ class GUI:
 
         # Elementos.
         # Linha 0.
-        self.label_menu_title = tk.Label(self.menu_frame, text='Seleção de Configuração')
-        self.label_menu_title.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
+        self.label_menu_title = tk.Label(self.menu_frame, text='Menu de perfil', font=10)
+        self.label_menu_title.grid(row=0, column=0, padx=50, pady=5, sticky='nswe')
 
         # Linha 1.
-        command = partial(print, 'Carregar Última')
-        self.dynamic_button = tk.Button(self.menu_frame, text='Carregar Última', command=command)
-        self.dynamic_button.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        command = partial(print, 'Carregar Último')
+        self.button_load_last_config_set = tk.Button(self.menu_frame, text='Carregar Último', command=command, state='disabled')
+        self.button_load_last_config_set.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 2.
-        command = partial(print, 'Selecionar')
-        self.dynamic_button = tk.Button(self.menu_frame, text='Selecionar', command=command)
-        self.dynamic_button.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        command = partial(self.open_selection_frame_to_load)
+        self.button_select_to_load = tk.Button(self.menu_frame, text='Selecionar', command=command, state='disabled')
+        self.button_select_to_load.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 3.
-        command = partial(self.create_config_set)
-        self.dynamic_button = tk.Button(self.menu_frame, text='Criar', command=command)
-        self.dynamic_button.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        command = partial(self.switch_frame, 'config_set_creation_frame')
+        self.button_create_config_set = tk.Button(self.menu_frame, text='Criar', command=command)
+        self.button_create_config_set.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 4.
         command = partial(print, 'Deletar')
-        self.dynamic_button = tk.Button(self.menu_frame, text='Deletar', command=command)
-        self.dynamic_button.grid(row=4, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        self.button_delete_config_set = tk.Button(self.menu_frame, text='Deletar', command=command, state='disabled')
+        self.button_delete_config_set.grid(row=4, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Linha 5.
         command = partial(self.close_app)
-        self.dynamic_button = tk.Button(self.menu_frame, text='Sair', command=command)
-        self.dynamic_button.grid(row=5, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        self.button_close_app = tk.Button(self.menu_frame, text='Sair', command=command)
+        self.button_close_app.grid(row=5, column=0, padx=5, pady=self.default_pady, sticky='nswe')
 
         # Adiciona à lista de janelas existentes.
         self.app_frames['menu_frame'] = self.menu_frame
 
+        # Verifica opções disponíveis do menu.
+        self.menu_frame.bind('<Map>', self.manage_menu_options)
+
         # ==============================================================================================================
-        # ConfigSetCreateFrame.
+        # ConfigSetSelectionFrame.
         # Variáveis.
-        self.config_set_creator_frame = tk.Frame(self.window)
-        self.var_config_set_title
+        self.config_set_selection_frame = tk.Frame(self.window)
+        self.var_config_set_name = tk.StringVar()
+        self.var_config_set_to_copy = tk.StringVar()
 
         # Elementos.
         # Linha 0.
-        self.label_menu_title = tk.Label(self.menu_frame, text='Criação configuração')
-        self.label_menu_title.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
-        
-        # Linha 1.
-        self.label_config_set_title = tk.Label(self.config_set_creator_frame, text='Título:', anchor='e')
-        self.label_config_set_title.grid(row=1, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_config_set_title = tk.Frame(self.config_set_creator_frame)
-        self.frame_config_set_title.columnconfigure(0, weight=1)
-        self.frame_config_set_title.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
-        self.warning_label_config_set_title = tk.Label(self.frame_config_set_title, text='', fg='red')
-        self.border_config_set_title = tk.Frame(self.frame_config_set_title)
-        self.border_config_set_title.columnconfigure(0, weight=1)
-        self.border_config_set_title.grid(row=1, column=0, sticky='nswe')
-        self.entry_config_set_title = tk.Entry(self.border_config_set_title, textvariable=self.var_config_set_title)
-        self.entry_config_set_title.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
+        self.label_menu_title = tk.Label(self.config_set_selection_frame, text='Seleção de Configuração', font=10)
+        self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
 
         # Linha 1.
-        command = partial(print, 'Carregar Última')
-        self.dynamic_button = tk.Button(self.config_set_creator_frame, text='Carregar Última', command=command)
-        self.dynamic_button.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+        self.frame_listbox = tk.Frame(self.config_set_selection_frame)
+        self.frame_listbox.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='nsew')
+        self.frame_listbox.columnconfigure(0, weight=1)
+        self.scrollbar = tk.Scrollbar(self.frame_listbox)
+        self.scrollbar.grid(row=0, column=1, sticky="nswe")
+        self.listbox_config_sets = tk.Listbox(self.frame_listbox, yscrollcommand=self.scrollbar.set)
+        self.listbox_config_sets.grid(row=0, column=0, sticky="nswe")
 
+        # Linha 2.
+        self.frame_config_set_selection_frame_buttons = tk.Frame(self.config_set_selection_frame)
+        self.frame_config_set_selection_frame_buttons.columnconfigure(0, weight=1)
+        self.frame_config_set_selection_frame_buttons.grid(row=2, column=0, columnspan=3, sticky='nswe')
+        self.space = tk.Label(self.frame_config_set_selection_frame_buttons, text='')
+        self.space.grid(row=0, column=0)
+        command = partial(self.go_back)
+        self.button_go_back = tk.Button(self.frame_config_set_selection_frame_buttons, text='Voltar', command=command)
+        self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.select_config_set)
+        self.button_select = tk.Button(self.frame_config_set_selection_frame_buttons, text='Selecionar', command=command, state='disabled')
+        self.button_select.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Adiciona à lista de janelas existentes.
-        self.app_frames['config_set_creator_frame'] = self.config_set_creator_frame
+        self.app_frames['config_set_selection_frame'] = self.config_set_selection_frame
+
+        # Associa a seleção do listbox a ativação do botão de seleção.
+        self.listbox_config_sets.bind('<FocusIn>', self.manage_button_select_state)
+        self.listbox_config_sets.bind('<Unmap>', self.manage_button_select_state)
+
+        # ==============================================================================================================
+        # ConfigSetCreationFrame.
+        # Variáveis.
+        self.config_set_creation_frame = tk.Frame(self.window)
+        self.var_config_set_name = tk.StringVar()
+        self.var_config_set_to_copy = tk.StringVar()
+
+        # Elementos.
+        # Linha 0.
+        self.label_menu_title = tk.Label(self.config_set_creation_frame, text='Criação de configuração', font=10)
+        self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+        # Linha 1.
+        self.label_config_set_name = tk.Label(self.config_set_creation_frame, text='Nome:', anchor='e')
+        self.label_config_set_name.grid(row=1, column=0, padx=5, pady=5, sticky='nswe')
+        self.frame_config_set_name = tk.Frame(self.config_set_creation_frame)
+        self.frame_config_set_name.columnconfigure(0, weight=1)
+        self.frame_config_set_name.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
+        self.warning_label_config_set_name = tk.Label(self.frame_config_set_name, text='', fg='red')
+        self.border_config_set_name = tk.Frame(self.frame_config_set_name)
+        self.border_config_set_name.columnconfigure(0, weight=1)
+        self.border_config_set_name.grid(row=1, column=0, sticky='nswe')
+        self.entry_config_set_name = tk.Entry(self.border_config_set_name, textvariable=self.var_config_set_name)
+        self.entry_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 2.
+        self.label_config_set_to_copy = tk.Label(self.config_set_creation_frame, text='Configuração à\nser copiada:', anchor='e')
+        self.label_config_set_to_copy.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
+        self.frame_config_set_to_copy = tk.Frame(self.config_set_creation_frame)
+        self.frame_config_set_to_copy.columnconfigure(0, weight=1)
+        self.frame_config_set_to_copy.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
+        self.warning_label_config_set_to_copy = tk.Label(self.frame_config_set_to_copy, text='', fg='red')
+        self.border_config_set_to_copy = tk.Frame(self.frame_config_set_to_copy)
+        self.border_config_set_to_copy.columnconfigure(0, weight=1)
+        self.border_config_set_to_copy.grid(row=1, column=0, sticky='nswe')
+        self.entry_config_set_to_copy = tk.Entry(
+            self.border_config_set_to_copy, textvariable=self.var_config_set_to_copy, state='disabled', cursor='arrow'
+        )
+        self.entry_config_set_to_copy.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Linha 3.
+        self.frame_config_set_creation_frame_buttons = tk.Frame(self.config_set_creation_frame)
+        self.frame_config_set_creation_frame_buttons.columnconfigure(0, weight=1)
+        self.frame_config_set_creation_frame_buttons.grid(row=3, column=0, columnspan=3, sticky='nswe')
+        command = partial(self.go_back)
+        self.button_go_back = tk.Button(self.frame_config_set_creation_frame_buttons, text='Voltar', command=command)
+        self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.open_selection_frame_to_copy)
+        self.button_select_to_copy = tk.Button(self.frame_config_set_creation_frame_buttons, text='Selecionar', command=command)
+        self.button_select_to_copy.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        command = partial(self.validate_to_create_config_set)
+        self.button_create = tk.Button(self.frame_config_set_creation_frame_buttons, text='Criar', command=command)
+        self.button_create.grid(row=0, column=3, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+        # Adiciona a lista de widgets que podem ser destacados.
+        self.config_fields['config_set_name'] = {
+            'display_frame': 'config_set_creation_frame',
+            'warning_label': self.warning_label_config_set_name,
+            'border': self.border_config_set_name,
+            'entry': self.entry_config_set_name,
+            'var': self.var_config_set_name
+        }
+
+        # Adiciona à lista de janelas existentes.
+        self.app_frames['config_set_creation_frame'] = self.config_set_creation_frame
 
         # ==============================================================================================================
         # HomeFrame.
@@ -114,8 +215,8 @@ class GUI:
 
         # Elementos.
         # Linha 0.
-        self.label_manga_name = tk.Label(self.home_frame, text='Home', font=24)
-        self.label_manga_name.grid(row=0, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+        self.label_manga_name = tk.Label(self.home_frame, text='Home', font=10)
+        self.label_manga_name.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
 
         # Linha 1.
         self.label_initial_chapter = tk.Label(self.home_frame, text='Capítulo Inicial:', anchor='e')
@@ -144,17 +245,22 @@ class GUI:
         self.entry_final_chapter.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 3.
+        self.frame_home_frame_buttons = tk.Frame(self.home_frame)
+        self.frame_home_frame_buttons.grid(row=3, column=0, columnspan=3)
+        command = partial(self.go_back)
+        self.button_config = tk.Button(self.frame_home_frame_buttons, text='Voltar', command=command)
+        self.button_config.grid(row=0, column=0, padx=3, pady=3, sticky='nswe')
         command = partial(self.validate_to_delete_downloaded_chapters)
         self.button_config = tk.Button(
-            self.home_frame, text='Excluir Downloads', command=command
+            self.frame_home_frame_buttons, text='Excluir Downloads', command=command
         )
-        self.button_config.grid(row=3, column=0, padx=3, pady=3, sticky='nswe')
+        self.button_config.grid(row=0, column=1, padx=3, pady=3, sticky='nswe')
         command = partial(self.switch_frame, 'config_frame')
-        self.button_config = tk.Button(self.home_frame, text='Configurações', command=command)
-        self.button_config.grid(row=3, column=1, padx=3, pady=3, sticky='nswe')
-        command = partial(self.validate_fields)
-        self.button_run = tk.Button(self.home_frame, text='Baixar', command=command)
-        self.button_run.grid(row=3, column=2, padx=3, pady=3, sticky='nswe')
+        self.button_config = tk.Button(self.frame_home_frame_buttons, text='Configurações', command=command)
+        self.button_config.grid(row=0, column=2, padx=3, pady=3, sticky='nswe')
+        command = partial(self.validate_fields_to_download)
+        self.button_run = tk.Button(self.frame_home_frame_buttons, text='Baixar', command=command)
+        self.button_run.grid(row=0, column=3, padx=3, pady=3, sticky='nswe')
 
         # Adiciona a lista de widgets que podem ser destacados.
         self.config_fields['initial_chapter'] = {
@@ -194,8 +300,8 @@ class GUI:
 
         # Elementos.
         # Linha 0.
-        self.label_config = tk.Label(self.config_frame, text='Configurações', font=24)
-        self.label_config.grid(row=0, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+        self.label_config = tk.Label(self.config_frame, text='Configurações', font=10)
+        self.label_config.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
 
         # Linha 1.
         self.label_manga_name = tk.Label(self.config_frame, text='Nome do Mangá:', anchor='e')
@@ -382,14 +488,15 @@ class GUI:
         self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Linha 13.
-        self.bottom_buttons_frame = tk.Frame(self.config_frame)
-        self.bottom_buttons_frame.grid(row=13, column=1, padx=2)
-        self.info_frame_space = tk.Label(self.bottom_buttons_frame, text='')
-        self.info_frame_space.grid(row=0, column=0, padx=100)
-        command = partial(self.reset_configs)
-        self.button_reset = tk.Button(self.bottom_buttons_frame, text='Configuração Padrão', command=command)
+        self.frame_info_frame_buttons = tk.Frame(self.config_frame)
+        self.frame_info_frame_buttons.grid(row=13, column=1, padx=2)
+        self.frame_info_frame_buttons.columnconfigure(0, weight=1)
+        self.info_frame_space = tk.Label(self.frame_info_frame_buttons, text='')
+        self.info_frame_space.grid(row=0, column=0)
+        command = partial(self.reset_config_set)
+        self.button_reset = tk.Button(self.frame_info_frame_buttons, text='Configuração Padrão', command=command)
         self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
-        command = partial(self.switch_frame, 'home_frame')
+        command = partial(self.save_and_go_back)
         self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
         self.button_back.grid(row=13, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
 
@@ -487,26 +594,28 @@ class GUI:
         # Variáveis.
         self.confirmation_frame = tk.Frame(self.window)
         self.confirmation_frame_max_char_per_line = 50
-        self.function_awaiting_confirmation = ''
 
         # Elementos.
         # Linha 0.
-        self.label_confirmation_title = tk.Label(self.confirmation_frame)
-        self.label_confirmation_title.grid(row=0, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+        self.label_confirmation_title = tk.Label(self.confirmation_frame, font=10)
+        self.label_confirmation_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
 
         # Linha 1.
         self.label_confirmation_description = tk.Label(self.confirmation_frame, anchor='w')
         self.label_confirmation_description.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
 
         # Linha 2.
+        self.frame_confirmation_frame_buttons = tk.Frame(self.confirmation_frame)
+        self.frame_confirmation_frame_buttons.grid(row=1, column=0, columnspan=3)
+        self.frame_confirmation_frame_buttons.columnconfigure(0, weight=1)
         self.info_frame_space = tk.Label(self.confirmation_frame, text='')
-        self.info_frame_space.grid(row=2, column=0, padx=50)
+        self.info_frame_space.grid(row=0, column=0)
         command = partial(self.cancel)
-        self.dynamic_button = tk.Button(self.confirmation_frame, text='Cancelar', command=command)
-        self.dynamic_button.grid(row=2, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        self.cancelation_button = tk.Button(self.confirmation_frame, text='Cancelar', command=command)
+        self.cancelation_button.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
         command = partial(self.execute_awaiting_function)
-        self.dynamic_button = tk.Button(self.confirmation_frame, text='Confirmar', command=command)
-        self.dynamic_button.grid(row=2, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+        self.confirmation_button = tk.Button(self.confirmation_frame, text='Confirmar', command=command)
+        self.confirmation_button.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
         # Adiciona à lista de janelas existentes.
         self.app_frames['confirmation_frame'] = self.confirmation_frame
@@ -522,8 +631,8 @@ class GUI:
 
         # Elementos.
         # Linha 0.
-        self.label_info_title = tk.Label(self.info_frame)
-        self.label_info_title.grid(row=0, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+        self.label_info_title = tk.Label(self.info_frame, font=10)
+        self.label_info_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
 
         # Linha 1.
         self.scrolled_textbox = scrolledtext.ScrolledText(
@@ -543,55 +652,93 @@ class GUI:
         # Exibe tela inicial
         self.switch_frame('menu_frame')
 
-        # Carrega configurações.
-        self.update_all_fields()
-
     # ==================================================================================================================
     # Funções gerais.
     def switch_frame(self, next_frame):
         """
             Exibe o frame requerido.
         """
-        if next_frame == 'confirmation_frame':
-            self.previous_frame = self.current_frame
-
-        # Esconde frame atualmente exibido.
-        if self.current_frame:
-            self.app_frames[self.current_frame].grid_forget()
+        # Verifica se há exibição de frame.
+        if self.bread_crumbs:
+            # Verifica se o frame requerido está sendo exibido.
+            if self.app_frames[self.bread_crumbs[-1]] == next_frame:
+                return
+            # Esconde frame atualmente exibido.
+            self.app_frames[self.bread_crumbs[-1]].grid_forget()
 
         # Exibe o frame requerido.
         self.app_frames[next_frame].grid()
 
-        # Salva o nome do frame atual.
-        self.current_frame = next_frame
+        frames_that_can_only_go_back_to_the_menu = [
+            'menu_frame',
+            'home_frame',
+            'config_set_creation_frame',
+            'config_set_deletion_frame',
+        ]
+        # Configura retorno para o menu.
+        if next_frame in frames_that_can_only_go_back_to_the_menu:
+            self.bread_crumbs = ['menu_frame']
+        if next_frame not in self.bread_crumbs:
+            self.bread_crumbs.append(next_frame)
 
-    def save_config_changes(self):
+        # Carrega configurações do home_frame e config_frame.
+        if next_frame == 'home_frame':
+            self.update_all_fields()
+
+    def go_back(self):
+        # Retira atual frame do histórico.
+        current_frame = self.bread_crumbs.pop()
+
+        # Esconde frame atualmente exibido.
+        self.app_frames[current_frame].grid_forget()
+
+        frames_not_go_back = [
+            'confirmation_frame',
+            'config_frame'
+        ]
+        for frame in self.bread_crumbs[::-1]:
+            if frame in frames_not_go_back:
+                self.bread_crumbs.pop()
+            else:
+                # Exibe o frame requerido.
+                self.app_frames[frame].grid()
+                break
+
+    def save_configs_for_download(self):
         """
             Salva variáveis de configuração.
         """
-        # # Instancia a classe de Configurações.
-        # config_ma = ConfigManager()
-        #
-        # # Varre os campos.
-        # for config_name, widgets in self.config_fields.items():
-        #     # Edita a configuração.
-        #     config_ma.edit_config(config_name, widgets['var'].get())
-        #
-        # # Salva.
-        # config_ma.save_configs()
-        # TODO: ALTERAR
-        pass
+        # Carrega configurações.
+        self.config_ma.load_config_set(self.current_config_set)
+
+        # TODO: PAREI AQUI TENTANDO CONSERTAR O SAVE
+        # Varre os campos.
+        for config_name, widgets in self.config_fields.items():
+            if config_name in self.configs_for_download:
+                # Pega o valor.
+                value = widgets['var'].get().strip()
+                # TODO: APAGAR
+                # print('GUI save_configs_for_download() config_name, value: {}, .{}.'.format(config_name, value))
+
+                # Salva na instância.
+                self.config_ma.edit_config(config_name, value)
+
+        # Salva.
+        self.config_ma.edit_config_set()
 
     def save_last_link(self, link):
         """
             :param link: (String) Link do último capítulo acessado.
             Salva o link do último capítulo acessado.
         """
-        # Edita o campo.
-        self.config_fields['last_link']['var'].set(link)
+        # Carrega configurações.
+        self.config_ma.load_config_set(self.current_config_set)
 
-        # Salva as configurações.
-        self.save_config_changes()
+        # Edita o config.
+        self.config_ma.edit_config('last_link', link)
+
+        # Salva.
+        self.config_ma.edit_config_set()
 
     def save_browser_handle(self, handle):
         """
@@ -606,7 +753,7 @@ class GUI:
             avisos como valores.
             Destaca campos com informações incorretas.
         """
-        target_frame = 'home_frame'
+        target_frame = ''
         target_config_name = ''
 
         # Varre avisos.
@@ -614,27 +761,18 @@ class GUI:
             # Seleciona campo.
             field = self.config_fields[config_name]
 
-            # Verifica se o config_frame deverá ser exibido.
-            if field['display_frame'] == 'config_frame':
-                target_frame = 'config_frame'
-                # Se for a primeira configação errada, salva para requisição de foco.
-                if not target_config_name:
-                    target_config_name = config_name
+            # Salva o primeiro campo a ser destacado.
+            if not target_frame:
+                target_frame = field['display_frame']
+
+            # Salva a primeira configuração a receber foco.
+            if not target_config_name:
+                target_config_name = config_name
 
             # Destaca campo e exibe aviso.
             field['warning_label']['text'] = warning
             field['border']['bg'] = 'red'
             field['warning_label'].grid(row=0, column=0)
-
-        # Se ainda não preechido, encontra o primeiro campo a receber aviso no home_frame.
-        if not target_config_name:
-            target_frame = 'home_frame'
-            for config_name in configs_and_warnings.keys():
-                # Seleciona campo.
-                field = self.config_fields[config_name]
-                if field['display_frame'] == 'home_frame':
-                    target_config_name = config_name
-                    break
 
         # Exibe o frame alvo.
         self.switch_frame(target_frame)
@@ -662,21 +800,174 @@ class GUI:
         """
             Atualiza todos os campos de configurações.
         """
-        # config_ma = ConfigManager()
-        # for config_name, field in self.config_fields.items():
-        #     field['var'].set(config_ma.config_list[config_name])
-        # TODO: ALTERAR
-        pass
+        # Carrega configurações.
+        self.config_ma.load_config_set(self.current_config_set)
+
+        # Preenche campos.
+        for config_name, field in self.config_fields.items():
+            if config_name in self.configs_for_download:
+                field['var'].set(self.config_ma.config_list[config_name])
+
+    def execute_awaiting_function(self):
+        """
+            Executa função esperando por confirmação.
+        """
+        match self.awaiting_function:
+            case 'delete_chapters':
+                self.delete_chapters()
+            case 'continue_to_create':
+                self.continue_to_create()
+            case 'continue_to_load':
+                self.continue_to_load()
 
     # ==================================================================================================================
     # Funções do MenuFrame.
+    def manage_menu_options(self, event):
+        """
+            :param event: (Event) Evento tkinter.
+             Manipula o estado dos botões do menu.
+        """
+        # Pega nomes.
+        config_set_names = self.config_ma.get_config_set_names()
+
+        if config_set_names:
+            self.button_load_last_config_set['state'] = 'normal'
+            self.button_select_to_load['state'] = 'normal'
+            self.button_delete_config_set['state'] = 'normal'
+        else:
+            self.button_load_last_config_set['state'] = 'disabled'
+            self.button_select_to_load['state'] = 'disabled'
+            self.button_delete_config_set['state'] = 'disabled'
+
     def close_app(self):
         self.window.destroy()
 
-    def create_config_set(self):
-        # TODO: DESENVOLVER
-        pass
+    def open_selection_frame_to_load(self):
+        """
+            Abre o frame para seleção de conjunto de configuração para carregar.
+        """
+        self.awaiting_function = 'continue_to_load'
+        self.display_config_sets()
+        self.switch_frame('config_set_selection_frame')
 
+    # ==================================================================================================================
+    # Funções do ConfigSetSelectionFrame.
+    def display_config_sets(self):
+        """
+            Exibe os nomes dos conjuntos de configurações.
+        """
+        # Apaga exibições atuais.
+        self.listbox_config_sets.delete(0, 'end')
+
+        # Pega nomes.
+        config_set_names = self.config_ma.get_config_set_names()
+
+        # Exibe os nomes.
+        for name in config_set_names:
+            self.listbox_config_sets.insert('end', name)
+
+    def manage_button_select_state(self, event):
+        """
+            :param event: (Event) Evento tkinter.
+            Muda o estado do botão de seleção conforme o evento.
+        """
+        if 'FocusIn' in str(event):
+            # Se Alguma opção foi selecionada habilita o botão.
+            self.button_select['state'] = 'normal'
+        else:
+            # Se o botão saiu da tela ele é desabilitado.
+            self.button_select['state'] = 'disabled'
+            self.window.focus()
+
+    def select_config_set(self):
+        """
+            Salva o conjunto de configurações selecionado e continua com a função em espera.
+        """
+        # Pega o item selecionado e salva.
+        selected_index = self.listbox_config_sets.curselection()[0]
+        self.selected_config_set = self.listbox_config_sets.get(selected_index)
+
+        # executa função em espera.
+        self.execute_awaiting_function()
+
+    def continue_to_create(self):
+        """
+            Atribuí conjunto de configuração selecionado ao campo do frame e volta para o frame de criação.
+        """
+        # Exibe no campo o conjunto de configurações selecionado.
+        self.var_config_set_to_copy.set(self.selected_config_set)
+
+        # Limpa variavel de seleção.
+        self.selected_config_set = ''
+
+        # Retorna para a criação.
+        self.go_back()
+
+    def continue_to_load(self):
+        self.config_ma.load_config_set(self.selected_config_set)
+
+        # Salva conjunto de configurações como atual.
+        self.current_config_set = self.selected_config_set
+
+        # Limpa variavel de seleção.
+        self.selected_config_set = ''
+
+        # Exibe home.
+        self.switch_frame('home_frame')
+
+    # ==================================================================================================================
+    # Funções do ConfigSetCreationFrame.
+    def validate_to_create_config_set(self):
+        """
+            Valida nome para criação de conjunto de configurações.
+        """
+        # Pega nome.
+        name = self.var_config_set_name.get().strip()
+
+        # Verifica existência de nome igual.
+        configs_and_warnings = {}
+        if not name:
+            configs_and_warnings['config_set_name'] = 'Informe um nome.'
+        elif self.config_ma.config_set_exist(name):
+            configs_and_warnings['config_set_name'] = 'Nome não disponível.'
+
+        if configs_and_warnings:
+            self.highlight_fields(configs_and_warnings)
+            return
+
+        # Pega nome do conjunto de configuração a ser copiado.
+        config_set_to_copy = self.var_config_set_to_copy.get().strip()
+
+        # Limpa campos
+        self.var_config_set_name.set('')
+        self.var_config_set_to_copy.set('')
+
+        self.create_config_set(name, config_set_to_copy)
+
+    def create_config_set(self, name, config_set_to_copy):
+        """
+            Cria conjunto de configutações e direciona para a home.
+        """
+        # Copia conjunto de configurações se requisitado, senão cria outro.
+        if config_set_to_copy:
+            self.config_ma.copy_config_set(name, config_set_to_copy)
+        else:
+            self.config_ma.add_config_set(name)
+
+        # Salva o nome do atual conjunto de configurações.
+        self.current_config_set = name
+
+        # Exibe a home.
+        self.switch_frame('home_frame')
+
+    def open_selection_frame_to_copy(self):
+        """
+            Abre o frame para seleção de conjunto de configuração para cópia.
+        """
+        self.awaiting_function = 'continue_to_create'
+        self.display_config_sets()
+        self.switch_frame('config_set_selection_frame')
+        
     # ==================================================================================================================
     # Funções do HomeFrame.
     def validate_to_delete_downloaded_chapters(self):
@@ -684,16 +975,11 @@ class GUI:
             Deleta arquivos da pasta final que correspondem ao nome e formato dos arquivos do mangá.
         """
         # Salva informações atuais.
-        self.save_config_changes()
-
-        # TODO: ALTERAR
-        # Instancia classes necessárias.
-        config_ma = ConfigManager()
-        system_ma = SystemManager()
+        self.save_configs_for_download()
 
         # Seleciona informações salvas.
-        final_dir = config_ma.config_list['final_dir']
-        manga_name = config_ma.config_list['manga_name']
+        final_dir = self.config_ma.config_list['final_dir']
+        manga_name = self.config_ma.config_list['manga_name']
 
         # Verifica disponibilidade de informações necessárias.
         configs_and_warnings = {}
@@ -712,7 +998,7 @@ class GUI:
 
         # Verifica o número de capítulos armazenados.
         patterns = [r'{} - '.format(manga_name), '.pdf']
-        self.chapters_files = system_ma.find_files(final_dir, patterns, 2)
+        self.chapters_files = self.system_ma.find_files(final_dir, patterns, 2)
         num_files = len(self.chapters_files)
 
         if num_files == 0:
@@ -723,21 +1009,18 @@ class GUI:
             self.switch_frame('info_frame')
             self.display_info(deletion_status, 'Exclusão')
         else:
-            self.function_awaiting_confirmation = 'delete_chapters'
+            self.awaiting_function = 'delete_chapters'
             self.switch_frame('confirmation_frame')
             self.display_confirmation_info(
-                'Exclusão de capítulos', ['Os arquivos serão excluídos permanentemente.', 'Você tem certeza?']
+                'Exclusão de capítulos', ['Os arquivos serão excluídos permanentemente.', 'Deseja continuar?']
             )
 
     def delete_chapters(self):
         """
             Excluí capítulos baixados.
         """
-        # Instancia classe necessária.
-        system_ma = SystemManager()
-
         # Deleta capítulos.
-        system_ma.delete(self.chapters_files)
+        self.system_ma.delete(self.chapters_files)
 
         # Conta o número de arquivos.
         num_files = len(self.chapters_files)
@@ -774,44 +1057,39 @@ class GUI:
         self.display_info(['Processo cancelado.'], 'Cancelado')
 
         # Muda função do botão dinâmico para voltar à home.
-        self.set_dynamic_button_action('go_home')
+        self.set_dynamic_button_action('go_back')
 
         if self.browser_handle:
             time.sleep(1)
             SystemManager.close_window(self.browser_handle)
 
-    def validate_fields(self):
+    def validate_fields_to_download(self):
         """
             Verifica se há as informações necessárias para realizar os downloads.
         """
         # Salva informações atuais.
-        self.save_config_changes()
-
-        # TODO: ALTERAR
-        # Instancia classes necessárias.
-        config_ma = ConfigManager()
-        system_ma = SystemManager()
+        self.save_configs_for_download()
 
         # Verifica disponibilidade de informações necessárias.
         configs_and_warnings = {}
 
         # Nome do mangá.
-        if not config_ma.config_list['manga_name']:
+        if not self.config_ma.config_list['manga_name']:
             configs_and_warnings['manga_name'] = 'Informe o nome do mangá.'
 
         # Link do capítulo inicial à ser baixado.
-        if not config_ma.config_list['base_link']:
+        if not self.config_ma.config_list['base_link']:
             configs_and_warnings['base_link'] = 'Informe o link do capítulo inicial.'
 
         # Pasta onde serão compilados os capítulos.
-        if not config_ma.config_list['final_dir']:
+        if not self.config_ma.config_list['final_dir']:
             configs_and_warnings['final_dir'] = 'Informe a pasta de destino.'
-        elif not system_ma.path_exist(config_ma.config_list['final_dir']):
+        elif not self.system_ma.path_exist(self.config_ma.config_list['final_dir']):
             configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
 
         # Capitulo inicial e final.
-        initial_chapter = config_ma.config_list['initial_chapter']
-        final_chapter = config_ma.config_list['final_chapter']
+        initial_chapter = self.config_ma.config_list['initial_chapter']
+        final_chapter = self.config_ma.config_list['final_chapter']
         are_numerical = True
         if not initial_chapter:
             configs_and_warnings['initial_chapter'] = 'Informe o número do capítulo.'
@@ -832,31 +1110,31 @@ class GUI:
                 configs_and_warnings['initial_chapter'] = 'Deve ser menor ou igual ao final.'
 
         # Pasta de download do navegador.
-        if not config_ma.config_list['download_dir']:
+        if not self.config_ma.config_list['download_dir']:
             configs_and_warnings['download_dir'] = 'Informe a pasta de download do chrome.'
-        elif not system_ma.path_exist(config_ma.config_list['download_dir']):
+        elif not self.system_ma.path_exist(self.config_ma.config_list['download_dir']):
             configs_and_warnings['download_dir'] = 'Informe uma pasta valida.'
 
         # Pasta de edição de arquivos.
-        if not config_ma.config_list['files_dir']:
+        if not self.config_ma.config_list['files_dir']:
             configs_and_warnings['files_dir'] = 'Informe uma pasta para edição de imagens.'
-        elif not system_ma.path_exist(config_ma.config_list['files_dir']):
+        elif not self.system_ma.path_exist(self.config_ma.config_list['files_dir']):
             configs_and_warnings['files_dir'] = 'Informe uma pasta valida.'
-            
+
         # Localização dos quadros das imagens.
-        if config_ma.config_list['frames_location_value'] and config_ma.config_list['frames_location_by'] == 'Selecione':
+        if self.config_ma.config_list['frames_location_value'] and self.config_ma.config_list['frames_location_by'] == 'Selecione':
             configs_and_warnings['frames_location_by'] = 'Selecione um identificador.'
 
         # Localização das imagens.
-        if config_ma.config_list['imgs_location_by'] == 'Selecione':
+        if self.config_ma.config_list['imgs_location_by'] == 'Selecione':
             configs_and_warnings['imgs_location_by'] = 'Selecione um identificador.'
-        if not config_ma.config_list['imgs_location_value']:
+        if not self.config_ma.config_list['imgs_location_value']:
             configs_and_warnings['imgs_location_value'] = 'Informe um valor.'
 
         # Localização do botão de avançar para a próxima página.
-        if config_ma.config_list['next_page_button_location_by'] == 'Selecione':
+        if self.config_ma.config_list['next_page_button_location_by'] == 'Selecione':
             configs_and_warnings['next_page_button_location_by'] = 'Selecione um identificador.'
-        if not config_ma.config_list['next_page_button_location_value']:
+        if not self.config_ma.config_list['next_page_button_location_value']:
             configs_and_warnings['next_page_button_location_value'] = 'Informe um valor.'
 
         # Tira o destaque dos campos.
@@ -868,9 +1146,9 @@ class GUI:
             return
 
         # Executa download.
-        self.run()
+        self.execute_download_process()
 
-    def run(self):
+    def execute_download_process(self):
         """
             Começa a baixar o mangá.
         """
@@ -878,7 +1156,7 @@ class GUI:
         self.browser_handle = 0
 
         # Instancia classe necessária.
-        download_ma = DownloadManager()
+        download_ma = DownloadManager(self.config_ma)
 
         # Muda função do botão dinâmico para cancelar.
         self.set_dynamic_button_action('cancel')
@@ -895,7 +1173,7 @@ class GUI:
         self.monitor_communication()
 
         # Muda função do botão dinâmico para voltar à home.
-        self.set_dynamic_button_action('go_home')
+        self.set_dynamic_button_action('go_back')
 
     def monitor_communication(self):
         """
@@ -960,19 +1238,22 @@ class GUI:
         """
             Sobreescreve o link base com o último link acessado.
         """
-        self.config_fields['base_link']['var'].set(self.config_fields['last_link']['var'].get())
+        self.config_fields['base_link']['var'].set(self.config_fields['last_link']['var'].get().strip())
 
-    def reset_configs(self):
+    def reset_config_set(self):
         """
             Excluí arquivo de configurações e retorna às configurações iniciais.
         """
-        # TODO: ALTERAR
-        pass
-        # config_ma = ConfigManager()
-        # system_ma = SystemManager()
-        # system_ma.delete([config_ma.config_list['config_file']])
-        # self.unhighlight()
-        # self.update_all_fields()
+        self.config_ma.reset_config_set()
+        self.unhighlight()
+        self.update_all_fields()
+
+    def save_and_go_back(self):
+        """
+            Salva e volta para o frame anterior.
+        """
+        self.save_configs_for_download()
+        self.go_back()
 
     # ==================================================================================================================
     # Funções do ConfirmationFrame.
@@ -1001,19 +1282,14 @@ class GUI:
         self.window.update()
 
     def cancel(self):
+        """
+            Cancela função em espera.
+        """
         # Limpa variável.
-        self.function_awaiting_confirmation = ''
+        self.awaiting_function = ''
 
         # Volta para o frame anterior.
-        self.switch_frame(self.previous_frame)
-
-    def execute_awaiting_function(self):
-        """
-            Executa função esperando por confirmação.
-        """
-        match self.function_awaiting_confirmation:
-            case 'delete_chapters':
-                self.delete_chapters()
+        self.go_back()
 
     # ==================================================================================================================
     # Funções do InfoFrame.
@@ -1021,10 +1297,10 @@ class GUI:
         """
             Executa a função do botão dinâmico.
         """
-        if self.dynamic_button_action == 'go_home':
+        if self.dynamic_button_action == 'go_back':
             # Limpa campo de informações e volta a home.
             self.clear_info()
-            self.switch_frame('home_frame')
+            self.go_back()
         elif self.dynamic_button_action == 'cancel':
             self.queue.put(['kill_secondary_process'])
 
@@ -1035,8 +1311,8 @@ class GUI:
         if action == 'cancel':
             self.dynamic_button_action = 'cancel'
             self.dynamic_button['text'] = 'Cancelar'
-        elif action == 'go_home':
-            self.dynamic_button_action = 'go_home'
+        elif action == 'go_back':
+            self.dynamic_button_action = 'go_back'
             self.dynamic_button['text'] = 'Voltar'
 
     def display_info(self, info_lines, info_title=''):
@@ -1115,3 +1391,9 @@ class GUI:
         self.scrolled_textbox['state'] = 'normal'
         self.scrolled_textbox.delete("1.0", tk.END)
         self.scrolled_textbox['state'] = 'disabled'
+
+
+# TODO: RETIRAR
+if __name__ == '__main__':
+    gui = GUI()
+    gui.window.mainloop()

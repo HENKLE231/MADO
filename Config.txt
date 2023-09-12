@@ -1,0 +1,453 @@
+last_config_set_loaded=Um
+<Um
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+manga_name=nome do manga
+
+base_link=
+
+last_link=
+
+initial_chapter=1
+
+final_chapter=1
+
+frames_location_by=Selecione
+
+frames_location_value=
+
+imgs_location_by=Selecione
+
+imgs_location_value=
+
+next_page_button_location_by=Selecione
+
+next_page_button_location_value=
+
+download_dir=C:\Users\Henrique\Downloads
+
+files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
+
+final_dir=
+
+config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+
+/>

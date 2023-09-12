@@ -19,9 +19,9 @@ Atributos:
   - config_file: String.
 Funções:
   - edit_config(String config_name, String value): Void;
-  - load_configs(String config_set_name (opcional)): Void;
+  - load_config_set(String config_set_name (opcional)): Void;
   - add_config_set(): Void;
-  - save_config_set(): Void;
+  - edit_config_set(): Void;
   - rename_config_set(String new_name, String current_name (opcional)): Void;
   - delete_config_set(String config_Set_name (opcional));
   - get_config_lines(): Array de Strings;
@@ -48,13 +48,13 @@ Funções:
       - download_process: Process.
       - default_padx: Int;
       - default_pady: Int;
-      - previous_frame: String;
-      - current_frame: String;
+      - selected_config_set: String;
+      - bread_crumbs: Array de String
       - app_frames: dict de tk.Frame;
       - config_filds: dicts com String e elementos tk.
     Funções:
       - switch_frame(String next_window): Void;
-      - save_config_changes(): Void;
+      - save_configs_for_download(): Void;
       - save_last_link(): Void;
       - save_browser_handle(): Void;
       - highlight_fields(Dict de Strings configs_and_warnings): Void;
@@ -70,8 +70,8 @@ Funções:
     Funções:
       - delete_downloaded_chapters(): Void;
       - kill_secondary_process(): Void;
-      - validate_fields(): Void;
-      - run(): Void;
+      - validate_fields_to_download(): Void;
+      - execute_download_process(): Void;
       - monitor_communication(): Void.
 
     //ConfigFrame
@@ -94,7 +94,7 @@ Funções:
       - select_dir(String title, tk.stringVar variable): Void;
       - clear_var(variable): Void;
       - copy_last_link_to_base_link: Void;
-      - reset_configs(): Void.
+      - reset_config_set(): Void.
 
     //InfoFrame
     Atributos:

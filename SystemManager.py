@@ -1,7 +1,5 @@
 from pathlib import Path
-import signal
 import os
-import win32api
 from win32api import GetSystemMetrics
 import win32gui
 import win32com.client as com_cli

@@ -6,11 +6,7 @@ import time
 
 
 class DownloadManager:
-    def __init__(self):
-        # Instancia classe necessária.
-        config_ma = ConfigManager()
-        # TODO: ALTERAR
-
+    def __init__(self, config_ma):
         # Cria e carrega variáveis.
         self.manga_name = config_ma.config_list['manga_name']
         self.base_link = config_ma.config_list['base_link']

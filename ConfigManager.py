@@ -1,6 +1,5 @@
 from SystemManager import SystemManager as SystemMa
 from pathlib import Path
-import os
 
 
 class ConfigManager:
@@ -36,7 +35,7 @@ class ConfigManager:
 
         # Carrega configurações.
         if config_set_name:
-            self.load_configs()
+            self.load_config_set()
 
     def edit_config(self, config_name, value):
         """
@@ -49,7 +48,7 @@ class ConfigManager:
         else:
             raise Exception('Configuração inexistente.')
 
-    def load_configs(self, config_set_name=None):
+    def load_config_set(self, config_set_name=None):
         """
             :param config_set_name: (String) Nome do conjunto de configurações.
             Carrega configurações.
@@ -65,31 +64,39 @@ class ConfigManager:
             if not self.config_set_exist(self.config_set_name):
                 # Cria um conjunto de configuração.
                 self.add_config_set()
+            else:
+                # Procura conjunto de configuração.
+                initial_index, final_index = self.find_config_set(self.config_set_name, config_lines)
 
-                # Carrega linhas novamente.
-                config_lines = self.get_config_lines()
+                # Seleciona linhas do conjunto escolhido.
+                config_set_lines = config_lines[(initial_index + 1):final_index]
 
-            # Procura conjunto de configuração.
-            initial_index, final_index = self.find_config_set(self.config_set_name, config_lines)
+                # Carrega informações para a instância.
+                for config_key in self.config_list.keys():
+                    for line in config_set_lines:
+                        if line.startswith('{}='.format(config_key)):
+                            self.config_list[config_key] = line[line.index('=')+1:]
+                            break
 
-            # Seleciona linhas do conjunto escolhido.
-            config_set_lines = config_lines[(initial_index + 1):final_index]
-
-            # Carrega informações para a instância.
-            for config_key in self.config_list.keys():
-                for line in config_set_lines:
-                    if line.startswith('{}='.format(config_key)):
-                        self.config_list[config_key] = line[line.index('=')+1:]
-                        break
-
-            self.save_last_config_set_loaded(self.config_set_name)
+                # Salva último conjunto de configurações carregado.
+                self.save_last_config_set_loaded(self.config_set_name)
 
         except FileNotFoundError:
             # Cria um conjunto de configuração.
             self.add_config_set()
 
-    def add_config_set(self):
+    def copy_config_set(self, new_name, old_name):
         """
+            :param new_name: (String) Nome do conjunto de configurações a ser criado.
+            :param old_name: (String) Nome do conjunto de configurações a ser copiado.
+            Copia e cria um conjunto de configurações.
+        """
+        self.load_config_set(old_name)
+        self.add_config_set(new_name)
+
+    def add_config_set(self, config_set_name=None):
+        """
+            :config_set_name: (String) Nome do conjunto de configurações.
             Adiciona configurações atuais como novo conjunto de configurações.
         """
         config_lines = []
@@ -98,6 +105,10 @@ class ConfigManager:
             config_lines = self.get_config_lines()
         except FileNotFoundError:
             pass
+
+        # Atribuí um novo nome.
+        if config_set_name:
+            self.config_set_name = config_set_name
 
         if self.config_set_exist(self.config_set_name):
             raise Exception('Conjunto de configurações já existente.')
@@ -117,14 +128,19 @@ class ConfigManager:
 
         # Atribui configuração se ainda não existente.
         lines = []
-        if not lines_to_write[0].startswith('last_config_set_loaded='):
-            lines.append('last_config_set_loaded=')
-        lines.extend(lines_to_write)
+        if lines_to_write[0].startswith('last_config_set_loaded='):
+            lines = lines_to_write
+            lines[0] = 'last_config_set_loaded={}'.format(self.config_set_name)
+        else:
+            lines.append('last_config_set_loaded={}'.format(self.config_set_name))
+            lines.extend(lines_to_write)
 
+        # TODO: APAGAR PRINT
+        print('add_config_set')
         # Escreve no arquivo de configurações.
         self.write_in_config_file(lines)
 
-    def save_config_set(self):
+    def edit_config_set(self, current_name=None,  new_name=None):
         """
             Edita o atual conjunto de configurações.
         """
@@ -135,6 +151,9 @@ class ConfigManager:
 
             if not self.config_set_exist(self.config_set_name):
                 raise Exception('Conjunto de configurações inexistente.')
+
+            if new_name and self.config_set_exist(new_name):
+                raise Exception('Novo nome indisponivel.')
 
             # Procura conjunto de configuração.
             initial_index, final_index = self.find_config_set(self.config_set_name, config_lines)
@@ -157,21 +176,20 @@ class ConfigManager:
                 else:
                     lines_to_write.append(line)
 
+            # TODO: APAGAR PRINT
+            print('edit_config_set')
             # Escreve no arquivo.
             self.write_in_config_file(lines_to_write)
 
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
 
-    def rename_config_set(self, new_name, current_name=None):
+    def rename_config_set(self, current_name, new_name):
         """
-            :param new_name: (String) Novo nome.
             :param current_name: (String) Atual nome do conjunto de configurações.
+            :param new_name: (String) Novo nome.
             Renomeio conjunto de configurações.
         """
-        if not current_name:
-            current_name = self.config_set_name
-
         lines_to_write = []
         try:
             # Carrega informações do arquivo de configurações.
@@ -187,6 +205,8 @@ class ConfigManager:
             lines_to_write = config_lines
             lines_to_write[initial_index] = '<{}'.format(new_name)
 
+            # TODO: APAGAR PRINT
+            print('rename_config_set')
             # Escreve no arquivo de configurações.
             self.write_in_config_file(lines_to_write)
 
@@ -201,7 +221,6 @@ class ConfigManager:
         if not config_set_name:
             config_set_name = self.config_set_name
 
-        lines_to_write = []
         try:
             # Carrega informações do arquivo de configurações.
             config_lines = self.get_config_lines()
@@ -216,11 +235,23 @@ class ConfigManager:
             lines_to_write = config_lines[:initial_index]
             lines_to_write.extend(config_lines[(final_index + 1):])
 
+            # TODO: APAGAR PRINT
+            print('delete_config_set')
             # Escreve no arquivo.
             self.write_in_config_file(lines_to_write)
 
+            # Limpa a configuração do último conjunto de configurações carregado.
+            self.save_last_config_set_loaded('')
+
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
+
+    def reset_config_set(self):
+        """
+            Reinicia o conjunto de configurações.
+        """
+        self.delete_config_set()
+        self.add_config_set()
 
     def get_config_lines(self):
         """
@@ -228,12 +259,16 @@ class ConfigManager:
             Carrega informações do arquivo de configurações.
         """
         try:
+            # Lê o arquivo.
             config_txt = open(self.config_list['config_file'], 'r')
             config_lines = config_txt.readlines()
             config_txt.close()
-            # Retira quebra de linhas.
-            config_lines = [line[:-2] for line in config_lines]
+
+            # Retira quebras de linha.
+            config_lines = [line[:-1] for line in config_lines]
+
             return config_lines
+
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
 
@@ -242,8 +277,12 @@ class ConfigManager:
             :param lines: (Array de Strings) Linhas que serão escritas.
             Escreve no arquivo de configurações.
         """
+        # TODO: APAGAR
+        print('ConfigManager write_in_config_file() number of lines {}'.format(len(lines)))
+
         # Abre o arquivo e escreve.
         with open(self.config_list['config_file'], 'w') as config_txt:
+            # for line in lines:
             for line in lines:
                 # Escreve e adiciona quebra de linha.
                 config_txt.write('{}\n'.format(line))
@@ -252,9 +291,12 @@ class ConfigManager:
         """
             :return: (Boolean) Se o Conjunto de configurações existe.
         """
-        config_lines = self.get_config_lines()
-        existing_names = [line[1:] for line in config_lines if line.startswith('<')]
-        return config_set_name in existing_names
+        try:
+            config_lines = self.get_config_lines()
+            existing_names = [line[1:] for line in config_lines if line.startswith('<')]
+            return config_set_name in existing_names
+        except FileNotFoundError:
+            return False
 
     @staticmethod
     def find_config_set(config_set_name, config_lines):
@@ -293,6 +335,8 @@ class ConfigManager:
                 lines.append('last_config_set_loaded={}'.format(config_set_name))
             lines.extend(config_lines)
 
+            # TODO: APAGAR PRINT
+            print('save_last_config_set_loaded')
             # Salva.
             self.write_in_config_file(lines)
 
@@ -316,3 +360,18 @@ class ConfigManager:
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
 
+    def get_config_set_names(self):
+        """
+            :return: (Array de strings) Nomes dos conjuntos de configurações.
+        """
+        config_set_names = []
+        try:
+            config_lines = self.get_config_lines()
+
+            for line in config_lines:
+                if line.startswith('<'):
+                    config_set_names.append(line[1:])
+        except FileNotFoundError:
+            pass
+
+        return config_set_names

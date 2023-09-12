@@ -4,6 +4,7 @@ em uma nova página a ser exibida antes da home.
 
 // GUI
 - Verificar edição do capitulo inicial para mudança no link base
+- Requisição de foco ao dar grid nos frames
 
 
 manga_name=Martial Peak
