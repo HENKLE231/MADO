@@ -14,15 +14,15 @@ class PDFManager:
         """
 
         # Define largura máxima.
-        max_width = 1200
+        desired_width = 1200
 
         # Abre a imagem.
         img = Image.open(file)
 
-        # Redimensiona a imagem se ela possui um tamanho superior ao definido.
+        # Redimensiona a imagem com largura diferente da desejada.
         width, height = img.size
-        if width > max_width:
-            difference = max_width / width
+        if width != desired_width:
+            difference = desired_width / width
             new_width = int(width * difference)
             new_height = int(height * difference)
             img = img.resize((new_width, new_height))
@@ -42,7 +42,7 @@ class PDFManager:
         os.remove(file)
 
     @staticmethod
-    def compile_chapters(chapter, chapter_files, final_dir):
+    def compile_chapters(manga_name, chapter, chapter_files, final_dir):
         """
             :param chapter: (String) Número do capítulo.
             :param chapter_files: (Array de String) Caminho dos arquivos do capítulo.
@@ -54,10 +54,8 @@ class PDFManager:
 
         # Adiciona imagens.
         for file in chapter_files:
-            pdf_pages = pyf.PdfReader(file)
-            for page in pdf_pages.pages:
-                pdf_chapter.add_page(page)
+            pdf_chapter.add_page(pyf.PdfReader(file).pages[0])
 
         # Salva arquivo final.
-        with Path(f'{final_dir}/Martial Peak - {chapter}.pdf').open(mode='wb') as pdf_file:
+        with Path(f'{final_dir}/{manga_name} - {chapter}.pdf').open(mode='wb') as pdf_file:
             pdf_chapter.write(pdf_file)

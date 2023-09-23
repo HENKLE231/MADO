@@ -6,12 +6,15 @@ em uma nova página a ser exibida antes da home.
 - Verificar edição do capitulo inicial para mudança no link base
 - Requisição de foco ao dar grid nos frames
 
-
+<Martial Peak
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
 last_link=https://manhuaplus.com/manga/martial-peak/chapter-2516/
 initial_chapter=2515
 final_chapter=2516
+select_read_mode_by: Selecione
+select_read_mode_value:
+visible_text:
 frames_location_by=id
 frames_location_value=chapter-video-frame
 imgs_location_by=tag name
@@ -22,3 +25,4 @@ download_dir=C:\Users\Henrique\Downloads
 files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
 final_dir=C:\Users\Henrique\Desktop\Excluir
 config_file=C:\Users\Henrique\Desktop\. Python\MADO\Config.txt
+/>

@@ -21,7 +21,7 @@ Funções:
   - edit_config(String config_name, String value): Void;
   - load_config_set(String config_set_name (opcional)): Void;
   - add_config_set(): Void;
-  - edit_config_set(): Void;
+  - save_config_set(): Void;
   - rename_config_set(String new_name, String current_name (opcional)): Void;
   - delete_config_set(String config_Set_name (opcional));
   - get_config_lines(): Array de Strings;
@@ -36,7 +36,7 @@ Atributos:
   - next_page_link: String.
 Funções: 
   - end_process(Queue queue, String error): Void;
-  - start_download(Queue queue): Void.
+  - download(Queue queue): Void.
 
 //GUI
     //Root
@@ -70,7 +70,7 @@ Funções:
     Funções:
       - delete_downloaded_chapters(): Void;
       - kill_secondary_process(): Void;
-      - validate_fields_to_download(): Void;
+      - validate_to_download(): Void;
       - execute_download_process(): Void;
       - monitor_communication(): Void.
 

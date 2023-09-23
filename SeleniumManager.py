@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.edge.service import Service as EdgeService
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
+from selenium.webdriver.support.ui import Select
 import os
 
 
@@ -59,6 +60,49 @@ class SeleniumManager:
             Abre link no navegador.
         """
         self.nav.get(link)
+
+    def select_read_mode_open_pages(self, select_read_mode_by, select_read_mode_value, visible_text):
+        """
+            :param select_read_mode_by: (String) Pelo que será procurado.
+            :param select_read_mode_value: (String) Valor a ser procurado.
+            :param visible_text: (String) Texto exibido na opção desejada.
+            Seleciona uma opção do seletor.
+        """
+        # Seleciona o seletor.
+        select = Select(self.nav.find_element(select_read_mode_by, select_read_mode_value))
+
+        # Seleciona a opção desejada.
+        select.select_by_visible_text(visible_text)
+
+    def get_current_chapter(self, select, current_chapter_by, current_chapter_value):
+        """
+            :param select: (Boolean) Se o elemento é um seletor.
+            :param current_chapter_by: (String) Pelo que será procurado.
+            :param current_chapter_value: (String) Valor a ser procurado.
+            :return: Numero do capítulo atual.
+        """
+        # Encontra o texto.
+        element = self.nav.find_element(current_chapter_by, current_chapter_value)
+        if select:
+            element = element.find_element('xpath', '//*[@selected="selected]')
+
+        chapter_text = element.text
+
+        # Encontra o número.
+        first_number_found = False
+        first_number_index = 0
+        last_number_index = 0
+
+        for i, char in enumerate(chapter_text):
+            if char.isdigit():
+                if not first_number_found:
+                    first_number_index = i
+                    last_number_index = i
+                    first_number_found = True
+                else:
+                    last_number_index = i
+
+        return chapter_text[first_number_index:last_number_index+1]
 
     def get_imgs_src(self, manga_name, chapter, frames_location, imgs_location):
         """

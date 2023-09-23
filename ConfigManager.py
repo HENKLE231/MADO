@@ -7,18 +7,33 @@ class ConfigManager:
         """
             :param config_set_name: (String) Nome do conjunto de configurações.
         """
+        self.config_set_name = config_set_name
+        self.config_list = {}
+        self.set_default_configs()
+
+        # Carrega configurações.
+        if config_set_name:
+            self.load_config_set()
+
+    def set_default_configs(self):
+        """
+            Atribui configuração padrão.
+        """
         # Instancia classe necessária.
         system_ma = SystemMa()
-
-        self.config_set_name = config_set_name
 
         self.config_list = {
             # Mangá.
             'manga_name': '',
             'base_link': '',
             'last_link': '',
-            'initial_chapter': 1,
-            'final_chapter': 1,
+            'num_chapters': 1,
+            'chapter_number_by': 'Selecione',
+            'chapter_number_value': '',
+            'select': False,
+            'select_read_mode_by': 'Selecione',
+            'select_read_mode_value': '',
+            'visible_text': '',
             'frames_location_by': 'Selecione',
             'frames_location_value': '',
             'imgs_location_by': 'Selecione',
@@ -32,10 +47,6 @@ class ConfigManager:
             # Arquivo de configuração
             'config_file': str(Path(r'{}\Config.txt'.format(system_ma.cwd)))
         }
-
-        # Carrega configurações.
-        if config_set_name:
-            self.load_config_set()
 
     def edit_config(self, config_name, value):
         """
@@ -135,12 +146,10 @@ class ConfigManager:
             lines.append('last_config_set_loaded={}'.format(self.config_set_name))
             lines.extend(lines_to_write)
 
-        # TODO: APAGAR PRINT
-        print('add_config_set')
         # Escreve no arquivo de configurações.
         self.write_in_config_file(lines)
 
-    def edit_config_set(self, current_name=None,  new_name=None):
+    def save_config_set(self):
         """
             Edita o atual conjunto de configurações.
         """
@@ -152,13 +161,13 @@ class ConfigManager:
             if not self.config_set_exist(self.config_set_name):
                 raise Exception('Conjunto de configurações inexistente.')
 
-            if new_name and self.config_set_exist(new_name):
-                raise Exception('Novo nome indisponivel.')
-
             # Procura conjunto de configuração.
             initial_index, final_index = self.find_config_set(self.config_set_name, config_lines)
 
-            for i, line in enumerate(config_lines):
+            i = 0
+            while i < len(config_lines):
+                # Seleciona linha.
+                line = config_lines[i]
                 # Adiciona configurações anteriores.
                 if i < initial_index:
                     lines_to_write.append(line)
@@ -168,16 +177,17 @@ class ConfigManager:
                 # Adiciona configurações atuais.
                 elif i < final_index:
                     for config_key, config in self.config_list.items():
-                        lines_to_write.append('{}={}\n'.format(config_key, config))
+                        lines_to_write.append('{}={}'.format(config_key, config))
+                        if i < final_index - 1:
+                            i += 1
                 # Fecha conjunto de configurações.
                 elif i == final_index:
                     lines_to_write.append('/>')
                 # Adiciona configurações posteriores.
                 else:
                     lines_to_write.append(line)
+                i += 1
 
-            # TODO: APAGAR PRINT
-            print('edit_config_set')
             # Escreve no arquivo.
             self.write_in_config_file(lines_to_write)
 
@@ -190,12 +200,11 @@ class ConfigManager:
             :param new_name: (String) Novo nome.
             Renomeio conjunto de configurações.
         """
-        lines_to_write = []
         try:
             # Carrega informações do arquivo de configurações.
             config_lines = self.get_config_lines()
 
-            if not self.config_set_exist(self.config_set_name):
+            if not self.config_set_exist(current_name):
                 raise Exception('Conjunto de configurações inexistente.')
 
             # Procura conjunto de configuração.
@@ -205,10 +214,11 @@ class ConfigManager:
             lines_to_write = config_lines
             lines_to_write[initial_index] = '<{}'.format(new_name)
 
-            # TODO: APAGAR PRINT
-            print('rename_config_set')
             # Escreve no arquivo de configurações.
             self.write_in_config_file(lines_to_write)
+
+            if current_name == self.get_last_config_set_loaded():
+                self.save_last_config_set_loaded(new_name)
 
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
@@ -225,7 +235,7 @@ class ConfigManager:
             # Carrega informações do arquivo de configurações.
             config_lines = self.get_config_lines()
 
-            if not self.config_set_exist(self.config_set_name):
+            if not self.config_set_exist(config_set_name):
                 raise Exception('Conjunto de configurações inexistente.')
 
             # Procura conjunto de configuração.
@@ -235,13 +245,12 @@ class ConfigManager:
             lines_to_write = config_lines[:initial_index]
             lines_to_write.extend(config_lines[(final_index + 1):])
 
-            # TODO: APAGAR PRINT
-            print('delete_config_set')
             # Escreve no arquivo.
             self.write_in_config_file(lines_to_write)
 
-            # Limpa a configuração do último conjunto de configurações carregado.
-            self.save_last_config_set_loaded('')
+            if config_set_name == self.get_last_config_set_loaded():
+                # Limpa a configuração do último conjunto de configurações carregado.
+                self.save_last_config_set_loaded('')
 
         except FileNotFoundError:
             raise FileNotFoundError('Arquivo de configurações não encontrado.')
@@ -250,8 +259,8 @@ class ConfigManager:
         """
             Reinicia o conjunto de configurações.
         """
-        self.delete_config_set()
-        self.add_config_set()
+        self.set_default_configs()
+        self.save_config_set()
 
     def get_config_lines(self):
         """
@@ -277,8 +286,6 @@ class ConfigManager:
             :param lines: (Array de Strings) Linhas que serão escritas.
             Escreve no arquivo de configurações.
         """
-        # TODO: APAGAR
-        print('ConfigManager write_in_config_file() number of lines {}'.format(len(lines)))
 
         # Abre o arquivo e escreve.
         with open(self.config_list['config_file'], 'w') as config_txt:
@@ -331,12 +338,13 @@ class ConfigManager:
 
             # Atribui configuração se ainda não existente.
             lines = []
-            if not config_lines[0].startswith('last_config_set_loaded='):
+            if config_lines[0].startswith('last_config_set_loaded='):
+                lines = config_lines
+                lines[0] = 'last_config_set_loaded={}'.format(config_set_name)
+            else:
                 lines.append('last_config_set_loaded={}'.format(config_set_name))
-            lines.extend(config_lines)
+                lines.extend(config_lines)
 
-            # TODO: APAGAR PRINT
-            print('save_last_config_set_loaded')
             # Salva.
             self.write_in_config_file(lines)
 
@@ -353,7 +361,10 @@ class ConfigManager:
 
             # Pega primeira linha.
             first_line = config_lines[0]
+
+            # Verifica se há a configuração.
             if first_line.startswith('last_config_set_loaded='):
+                # Seleciona a configuração.
                 return first_line[(first_line.index('=') + 1):]
             else:
                 raise Exception('Configuração last_config_set_loaded não encontrada.')
