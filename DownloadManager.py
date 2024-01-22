@@ -1,12 +1,12 @@
 from SeleniumManager import SeleniumManager
-from ConfigManager import ConfigManager
 from SystemManager import SystemManager
 from PDFManager import PDFManager
 import time
 
 
 class DownloadManager:
-    def __init__(self, config_ma):
+    def __init__(self, config_ma, communication_options):
+        self.communication_options = communication_options
         # Cria e carrega variáveis.
         self.manga_name = config_ma.config_list['manga_name']
         self.next_page_link = config_ma.config_list['base_link']
@@ -14,12 +14,16 @@ class DownloadManager:
         self.download_dir = config_ma.config_list['download_dir']
         self.files_dir = config_ma.config_list['files_dir']
         self.final_dir = config_ma.config_list['final_dir']
-        self.select = config_ma.config_list['select']
+        self.is_select = config_ma.config_list['is_select'] == '1'
         self.chapter_number_by = config_ma.config_list['chapter_number_by']
         self.chapter_number_value = config_ma.config_list['chapter_number_value']
         self.select_read_mode_by = config_ma.config_list['select_read_mode_by']
         self.select_read_mode_value = config_ma.config_list['select_read_mode_value']
         self.visible_text = config_ma.config_list['visible_text']
+        self.chapter_number = {
+            'by': config_ma.config_list['chapter_number_by'],
+            'value': config_ma.config_list['chapter_number_value']
+        }
         self.frames_location = {
             'by': config_ma.config_list['frames_location_by'],
             'value': config_ma.config_list['frames_location_value']
@@ -66,7 +70,7 @@ class DownloadManager:
         system_ma = SystemManager()
 
         # Informa o inicio do processo.
-        queue.put(['display_info', ['Iniciou.'], 'Download'])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciou.'], 'Download'])
 
         # Limpa pasta de arquivos desnecessários.
         unnecessary_files = system_ma.find_files(self.files_dir, [''])
@@ -77,7 +81,7 @@ class DownloadManager:
         system_ma.delete(unmoved_images)
 
         # Informa o progresso.
-        queue.put(['display_info', ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
 
         there_is_no_chapter = True
         for i in range(self.num_chapters):
@@ -93,7 +97,7 @@ class DownloadManager:
             except Exception as error:
                 self.end_process(queue, str(error))
 
-            queue.put(['save_last_link', self.next_page_link])
+            queue.put([self.communication_options.SAVE_LAST_LINK, self.next_page_link])
 
             # Seleciona o modo de leitura com páginas abertas.
             if self.visible_text:
@@ -123,7 +127,7 @@ class DownloadManager:
                 error = str(error)
                 if 'Unable to locate element' in error:
                     error = f'Não há capítulo {current_chapter}.'
-                    queue.put(['display_info', [error]])
+                    queue.put([self.communication_options.DISPLAY_INFO, [error]])
                     selenium_ma.close_nav()
                     break
                 else:
@@ -140,7 +144,7 @@ class DownloadManager:
                     error = str(error)
                     if 'Unable to locate element' in error:
                         error = f'Não há capítulo {current_chapter}.'
-                        queue.put(['display_info', [error]])
+                        queue.put([self.communication_options.DISPLAY_INFO, [error]])
                         # Fecha o navegador.
                         selenium_ma.close_nav()
                         break
@@ -153,14 +157,14 @@ class DownloadManager:
 
             # Informa o progresso.
             completion_percentage = (i + 1) / self.num_chapters
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+            queue.put([self.communication_options.UPDATE_LAST_LINES, [f'Progresso: {completion_percentage:.2%}']])
 
         # Se não há capítulo, encerra.
         if there_is_no_chapter:
             self.end_process(queue, 'Não há capítulo para ser baixado.')
 
         # Informa o progresso.
-        queue.put(['display_info', ['Iniciando downloads.', f'Progresso: {0:.2%}']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciando downloads.', f'Progresso: {0:.2%}']])
 
         # Configuração para navegador abrir fora da tela.
         size_and_position = [0, 0, system_ma.screen_x, system_ma.screen_y]
@@ -169,7 +173,7 @@ class DownloadManager:
         selenium_ma.open_nav(page_load_strategy='normal', size_and_position=size_and_position)
 
         # Salva identificador do navegador.
-        queue.put(['save_browser_handle', system_ma.get_current_window_handle()])
+        queue.put([self.communication_options.SAVE_BROWSER_HANDLE, system_ma.get_current_window_handle()])
 
         # Seleciona imagens não baixadas.
         imgs_to_download = [(img_name, link) for img_name, link, downloaded in selenium_ma.imgs_info if not downloaded]
@@ -197,16 +201,16 @@ class DownloadManager:
 
             # Informa o progresso.
             completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.download_dir)
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+            queue.put([self.communication_options.UPDATE_LAST_LINES, [f'Progresso: {completion_percentage:.2%}']])
 
         # Fecha o navegador.
         selenium_ma.close_nav()
 
         # Salva identificador do navegador.
-        queue.put(['save_browser_handle', 0])
+        queue.put([self.communication_options.SAVE_BROWSER_HANDLE, 0])
 
         # Informa o progresso.
-        queue.put(['display_info', ['Iniciando transferência de imagens para pasta de edição.']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciando transferência de imagens para pasta de edição.']])
 
         # Move as imagens para uma pasta adequada.
         patterns = [f'{self.manga_name}_', '.jpg']
@@ -215,13 +219,13 @@ class DownloadManager:
         downloaded_imgs = system_ma.find_files(self.files_dir, patterns)
 
         # Informa o progresso.
-        queue.put(['display_info', ['Imagens movidas para pasta de edição.']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Imagens movidas para pasta de edição.']])
 
         # Obtem o nome das imagens.
         num_imgs = len(downloaded_imgs)
 
         # Informa o progresso.
-        queue.put(['display_info', ['Iniciando conversão para PDF.', f'Progresso: {0:.2%}']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciando conversão para PDF.', f'Progresso: {0:.2%}']])
 
         # Converte imagens para PDF.
         for current_img_index, img_path in enumerate(downloaded_imgs):
@@ -232,7 +236,7 @@ class DownloadManager:
 
             # Informa o progresso.
             completion_percentage = (current_img_index + 1) / num_imgs
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+            queue.put([self.communication_options.UPDATE_LAST_LINES, [f'Progresso: {completion_percentage:.2%}']])
 
         # Encontra os PDFs.
         pdfs_paths = system_ma.find_files(self.files_dir, ['.pdf'])
@@ -242,7 +246,7 @@ class DownloadManager:
         num_chapters = len(chapters)
 
         # Informa o progresso.
-        queue.put(['display_info', ['Iniciando compilação dos capítulos.', f'Progresso: {0:.2%}']])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciando compilação dos capítulos.', f'Progresso: {0:.2%}']])
 
         for chapter_index, chapter in enumerate(chapters):
             # Seleciona imagens pertencentes a esse capítulo.
@@ -256,14 +260,14 @@ class DownloadManager:
 
             # Informa o progresso.
             completion_percentage = (chapter_index + 1) / num_chapters
-            queue.put(['update_last_lines', [f'Progresso: {completion_percentage:.2%}']])
+            queue.put([self.communication_options.UPDATE_LAST_LINES, [f'Progresso: {completion_percentage:.2%}']])
 
         # Limpa pasta de arquivos desnecessários.
         unnecessary_files = system_ma.find_files(self.files_dir, [''])
         system_ma.delete(unnecessary_files)
 
         # Informa o progresso.
-        queue.put(['display_info', ['Concluído com sucesso!'], 'Concluído!'])
+        queue.put([self.communication_options.DISPLAY_INFO, ['Concluído com sucesso!'], 'Concluído!'])
 
         # Encerra processo de download.
-        queue.put(['end'])
+        queue.put([self.communication_options.END])

@@ -3,15 +3,21 @@
 em uma nova página a ser exibida antes da home.
 
 // GUI
-- Verificar edição do capitulo inicial para mudança no link base
-- Requisição de foco ao dar grid nos frames
+- Ver como o seletor esta sendo passado.
+- Verificar se está carregando corretamente as informações.
+- Verificar validação de informações.
+- Verificar passagem de informações para o DownloadManager.py.
+- Verificar edição do capitulo inicial para mudança no link base.
+- Requisição de foco ao dar grid nos frames.
+- Seletor não desmarca.
+- Verificar em outros trechos Unable to locate element.
+
 
 <Martial Peak
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
 last_link=https://manhuaplus.com/manga/martial-peak/chapter-2516/
 initial_chapter=2515
-final_chapter=2516
 select_read_mode_by: Selecione
 select_read_mode_value:
 visible_text:

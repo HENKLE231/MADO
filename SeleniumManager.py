@@ -4,7 +4,6 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.support.ui import Select
 import os
 
-
 class SeleniumManager:
     def __init__(self):
         self.service = EdgeService(EdgeChromiumDriverManager().install())
@@ -142,6 +141,7 @@ class SeleniumManager:
             :return: (String) Link do próximo capítulo.
         """
         next_page_button = self.nav.find_element(next_page_button_location['by'], next_page_button_location['value'])
+        print('SeleniumManager.py get_next_page_link() next_page_button: {}'.format(next_page_button))
         return next_page_button.get_attribute('href')
 
     def execute_script(self, script):

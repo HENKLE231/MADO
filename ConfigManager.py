@@ -30,7 +30,7 @@ class ConfigManager:
             'num_chapters': 1,
             'chapter_number_by': 'Selecione',
             'chapter_number_value': '',
-            'select': False,
+            'is_select': 0,
             'select_read_mode_by': 'Selecione',
             'select_read_mode_value': '',
             'visible_text': '',
@@ -269,7 +269,7 @@ class ConfigManager:
         """
         try:
             # Lê o arquivo.
-            config_txt = open(self.config_list['config_file'], 'r')
+            config_txt = open(self.config_list['config_file'], 'r', encoding='utf-8')
             config_lines = config_txt.readlines()
             config_txt.close()
 
@@ -288,7 +288,7 @@ class ConfigManager:
         """
 
         # Abre o arquivo e escreve.
-        with open(self.config_list['config_file'], 'w') as config_txt:
+        with open(self.config_list['config_file'], 'w', encoding='utf-8') as config_txt:
             # for line in lines:
             for line in lines:
                 # Escreve e adiciona quebra de linha.

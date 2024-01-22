@@ -11,832 +11,854 @@ from TextManager import TextManager
 from DownloadManager import DownloadManager
 import time
 
+class Frames:
+    MENU_FRAME = 'menu_frame'
+    SELECTION_FRAME = 'selection_frame'
+    CREATION_FRAME = 'creation_frame'
+    RENAME_FRAME = 'rename_frame'
+    HOME_FRAME = 'home_frame'
+    CONFIG_FRAME = 'config_frame'
+    CONFIRMATION_FRAME = 'confirmation_frame'
+    INFO_FRAME = 'info_frame'
+
+class CommunicationOptions:
+    SAVE_BROWSER_HANDLE = 'save_browser_handle'
+    SAVE_LAST_LINK = 'save_last_link'
+    DISPLAY_INFO = 'display_info'
+    UPDATE_LAST_LINES = 'update_last_lines'
+    KILL_SECONDARY_PROCESS = 'kill_secondary_process'
+    END = 'end'
 
 class GUI:
     def __init__(self):
-        # RootWindow.
-        # Variáveis.
-        self.window = tk.Tk()
-        self.title = 'MADO'
-        self.window.title(self.title)
-        self.browser_handle = 0
-        self.queue = Queue()
-        self.download_process = None
-        self.default_padx = 2
-        self.default_pady = 2
-        self.selected_config_set = ''
-        self.current_config_set = ''
-        self.awaiting_function = ''
-        self.bread_crumbs = []
-        self.app_frames = {}
-        self.config_fields = {}
-        self.var_chapter_number_by = tk.StringVar()
-        self.var_chapter_number_value = tk.StringVar()
-        self.var_select = tk.BooleanVar()
-        self.configs_for_download = [
-            'manga_name',
-            'num_chapters',
-            'base_link',
-            'last_link',
-            'final_dir',
-            'download_dir',
-            'files_dir',
-            'chapter_number_by',
-            'chapter_number_value',
-            'select'
-            'select_read_mode_by',
-            'select_read_mode_value',
-            'visible_text',
-            'frames_location_by',
-            'frames_location_value',
-            'imgs_location_by',
-            'imgs_location_value',
-            'next_page_button_location_by',
-            'next_page_button_location_value'
-        ]
-
-        # Instancia classe de configuração.
-        self.config_ma = ConfigManager()
-
-        # Instancia classe de manipulação do sistema.
-        self.system_ma = SystemManager()
-
-        # Configuração de fonte.
-        self.defaultFont = font.nametofont("TkDefaultFont")
-        self.defaultFont.configure(family='Verdana', size=9)
-
-        # ==============================================================================================================
-        # MenuFrame.
-        # Variáveis.
-        self.menu_frame = tk.Frame(self.window)
-
-        # Elementos.
-        # Linha 0.
-        self.label_menu_title = tk.Label(self.menu_frame, text='Menu de perfil', font=10)
-        self.label_menu_title.grid(row=0, column=0, padx=50, pady=5, sticky='nswe')
-
-        # Linha 1.
-        command = partial(self.load_last_config_set_loaded)
-        self.button_load_last_config_set = tk.Button(self.menu_frame, text='Carregar Último', command=command, state='disabled')
-        self.button_load_last_config_set.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 2.
-        command = partial(self.open_selection_frame, 'continue_to_load', 'Selecione para carregar.')
-        self.button_select_to_load = tk.Button(self.menu_frame, text='Selecionar', command=command, state='disabled')
-        self.button_select_to_load.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 3.
-        command = partial(self.switch_frame, 'creation_frame')
-        self.button_create_config_set = tk.Button(self.menu_frame, text='Criar', command=command)
-        self.button_create_config_set.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 4.
-        command = partial(self.open_selection_frame, 'ask_confirmation_to_delete', 'Selecione para deletar.')
-        self.button_delete_config_set = tk.Button(self.menu_frame, text='Deletar', command=command, state='disabled')
-        self.button_delete_config_set.grid(row=4, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 5.
-        command = partial(self.open_selection_frame, 'continue_to_rename', 'Selecione para renomear.')
-        self.button_rename_config_set = tk.Button(self.menu_frame, text='Renomear', command=command, state='disabled')
-        self.button_rename_config_set.grid(row=5, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 6.
-        command = partial(self.close_app)
-        self.button_close_app = tk.Button(self.menu_frame, text='Sair', command=command)
-        self.button_close_app.grid(row=6, column=0, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['menu_frame'] = {
-            'frame': self.menu_frame,
-            'widget_to_focus': ''
-        }
-
-        # Verifica opções disponíveis do menu.
-        self.menu_frame.bind('<Map>', self.manage_menu_buttons_states)
-
-        # ==============================================================================================================
-        # SelectionFrame.
-        # Variáveis.
-        self.selection_frame = tk.Frame(self.window)
-        self.var_config_set_name = tk.StringVar()
-        self.var_config_set_to_copy = tk.StringVar()
-
-        # Elementos.
-        # Linha 0.
-        self.label_selection_frame_title = tk.Label(self.selection_frame, text='', font=10)
-        self.label_selection_frame_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.frame_listbox = tk.Frame(self.selection_frame)
-        self.frame_listbox.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='nsew')
-        self.frame_listbox.columnconfigure(0, weight=1)
-        self.scrollbar = tk.Scrollbar(self.frame_listbox)
-        self.scrollbar.grid(row=0, column=1, sticky="nswe")
-        self.listbox_config_sets = tk.Listbox(self.frame_listbox, yscrollcommand=self.scrollbar.set)
-        self.listbox_config_sets.grid(row=0, column=0, sticky="nswe")
-
-        # Linha 2.
-        self.frame_selection_frame_buttons = tk.Frame(self.selection_frame)
-        self.frame_selection_frame_buttons.columnconfigure(0, weight=1)
-        self.frame_selection_frame_buttons.grid(row=2, column=0, columnspan=3, sticky='nswe')
-        self.space = tk.Label(self.frame_selection_frame_buttons, text='')
-        self.space.grid(row=0, column=0)
-        command = partial(self.go_back)
-        self.button_go_back = tk.Button(self.frame_selection_frame_buttons, text='Voltar', command=command)
-        self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.select_config_set)
-        self.button_select = tk.Button(self.frame_selection_frame_buttons, text='Selecionar', command=command, state='disabled')
-        self.button_select.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['selection_frame'] = {
-            'frame': self.selection_frame,
-            'widget_to_focus': ''
-        }
-
-        # Associa a seleção do listbox a ativação do botão de seleção.
-        self.listbox_config_sets.bind('<FocusIn>', self.manage_button_select_state)
-        self.listbox_config_sets.bind('<Unmap>', self.manage_button_select_state)
-
-        # ==============================================================================================================
-        # CreationFrame.
-        # Variáveis.
-        self.creation_frame = tk.Frame(self.window)
-        self.var_config_set_name = tk.StringVar()
-        self.var_config_set_to_copy = tk.StringVar()
-
-        # Elementos.
-        # Linha 0.
-        self.label_menu_title = tk.Label(self.creation_frame, text='Criação de perfil', font=10)
-        self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.label_config_set_name = tk.Label(self.creation_frame, text='Nome:', anchor='e')
-        self.label_config_set_name.grid(row=1, column=0, padx=5, pady=5, sticky='nswe')
-        self.frame_config_set_name = tk.Frame(self.creation_frame)
-        self.frame_config_set_name.columnconfigure(0, weight=1)
-        self.frame_config_set_name.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
-        self.warning_label_config_set_name = tk.Label(self.frame_config_set_name, text='', fg='red')
-        self.border_config_set_name = tk.Frame(self.frame_config_set_name)
-        self.border_config_set_name.columnconfigure(0, weight=1)
-        self.border_config_set_name.grid(row=1, column=0, sticky='nswe')
-        self.entry_config_set_name = tk.Entry(self.border_config_set_name, textvariable=self.var_config_set_name)
-        self.entry_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 2.
-        self.label_config_set_to_copy = tk.Label(self.creation_frame, text='Perfil à\nser copiada:', anchor='e')
-        self.label_config_set_to_copy.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
-        self.frame_config_set_to_copy = tk.Frame(self.creation_frame)
-        self.frame_config_set_to_copy.columnconfigure(0, weight=1)
-        self.frame_config_set_to_copy.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
-        self.warning_label_config_set_to_copy = tk.Label(self.frame_config_set_to_copy, text='', fg='red')
-        self.border_config_set_to_copy = tk.Frame(self.frame_config_set_to_copy)
-        self.border_config_set_to_copy.columnconfigure(0, weight=1)
-        self.border_config_set_to_copy.grid(row=1, column=0, sticky='nswe')
-        self.entry_config_set_to_copy = tk.Entry(
-            self.border_config_set_to_copy, textvariable=self.var_config_set_to_copy, state='disabled', cursor='arrow'
-        )
-        self.entry_config_set_to_copy.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 3.
-        self.frame_creation_frame_buttons = tk.Frame(self.creation_frame)
-        self.frame_creation_frame_buttons.columnconfigure(0, weight=1)
-        self.frame_creation_frame_buttons.grid(row=3, column=0, columnspan=3, sticky='nswe')
-        command = partial(self.go_back)
-        self.button_go_back = tk.Button(self.frame_creation_frame_buttons, text='Voltar', command=command)
-        self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.open_selection_frame, 'continue_to_create', 'Selecione para copiar.')
-        self.button_select_to_copy = tk.Button(self.frame_creation_frame_buttons, text='Selecionar', command=command)
-        self.button_select_to_copy.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.validate_to_create)
-        self.button_create = tk.Button(self.frame_creation_frame_buttons, text='Criar', command=command)
-        self.button_create.grid(row=0, column=3, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona a lista de widgets existentes.
-        self.config_fields['config_set_name'] = {
-            'display_frame': 'creation_frame',
-            'warning_label': self.warning_label_config_set_name,
-            'border': self.border_config_set_name,
-            'widget': self.entry_config_set_name,
-            'var': self.var_config_set_name
-        }
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['creation_frame'] = {
-            'frame': self.creation_frame,
-            'widget_to_focus': self.entry_config_set_name
-        }
-
-        # ==============================================================================================================
-        # RenameFrame.
-        # Variáveis.
-        self.rename_frame = tk.Frame(self.window)
-        self.var_current_config_set_name = tk.StringVar()
-        self.var_new_config_set_name = tk.StringVar()
-
-        # Elementos.
-        # Linha 0.
-        self.label_menu_title = tk.Label(self.rename_frame, text='Renomear perfil.', font=10)
-        self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.label_current_config_set_name = tk.Label(self.rename_frame, text='Nome Atual:', anchor='e')
-        self.label_current_config_set_name.grid(row=1, column=0, padx=5, pady=5, sticky='nswe')
-        self.frame_current_config_set_name = tk.Frame(self.rename_frame)
-        self.frame_current_config_set_name.columnconfigure(0, weight=1)
-        self.frame_current_config_set_name.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
-        self.warning_label_current_config_set_name = tk.Label(self.frame_current_config_set_name, text='', fg='red')
-        self.border_current_config_set_name = tk.Frame(self.frame_current_config_set_name)
-        self.border_current_config_set_name.columnconfigure(0, weight=1)
-        self.border_current_config_set_name.grid(row=1, column=0, sticky='nswe')
-        self.entry_current_config_set_name = tk.Entry(
-            self.border_current_config_set_name, textvariable=self.var_current_config_set_name, state='disabled', cursor='arrow'
-        )
-        self.entry_current_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 2.
-        self.label_new_config_set_name = tk.Label(self.rename_frame, text='Novo nome:', anchor='e')
-        self.label_new_config_set_name.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
-        self.frame_new_config_set_name = tk.Frame(self.rename_frame)
-        self.frame_new_config_set_name.columnconfigure(0, weight=1)
-        self.frame_new_config_set_name.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
-        self.warning_label_new_config_set_name = tk.Label(self.frame_new_config_set_name, text='', fg='red')
-        self.border_new_config_set_name = tk.Frame(self.frame_new_config_set_name)
-        self.border_new_config_set_name.columnconfigure(0, weight=1)
-        self.border_new_config_set_name.grid(row=1, column=0, sticky='nswe')
-        self.entry_new_config_set_name = tk.Entry(self.border_new_config_set_name, textvariable=self.var_new_config_set_name)
-        self.entry_new_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 3.
-        self.frame_rename_frame_buttons = tk.Frame(self.rename_frame)
-        self.frame_rename_frame_buttons.columnconfigure(0, weight=1)
-        self.frame_rename_frame_buttons.grid(row=3, column=0, columnspan=3, sticky='nswe')
-        command = partial(self.go_back)
-        self.button_go_back = tk.Button(self.frame_rename_frame_buttons, text='Voltar', command=command)
-        self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.validate_to_rename)
-        self.button_create = tk.Button(self.frame_rename_frame_buttons, text='Renomear', command=command)
-        self.button_create.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona a lista de widgets existentes.
-        self.config_fields['new_config_set_name'] = {
-            'display_frame': 'rename_frame',
-            'warning_label': self.warning_label_new_config_set_name,
-            'border': self.border_new_config_set_name,
-            'widget': self.entry_new_config_set_name,
-            'var': self.var_new_config_set_name
-        }
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['rename_frame'] = {
-            'frame': self.rename_frame,
-            'widget_to_focus': self.entry_new_config_set_name
-        }
-
-        # ==============================================================================================================
-        # HomeFrame.
-        # Variáveis.
-        self.home_frame = tk.Frame(self.window)
-        self.var_num_chapters = tk.StringVar()
-        self.var_final_chapter = tk.StringVar()
-        self.var_base_link = tk.StringVar()
-        self.var_last_link = tk.StringVar()
-        self.chapters_files = []
-
-        # Elementos.
-        # Linha 0.
-        self.label_manga_name = tk.Label(self.home_frame, text='Home', font=10)
-        self.label_manga_name.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.label_loaded_config_set_name = tk.Label(self.home_frame, text='', anchor='center')
-        self.label_loaded_config_set_name.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
-        
-        # Linha 2.
-        self.label_num_chapters = tk.Label(self.home_frame, text='Quantidade de capítulos:', anchor='e')
-        self.label_num_chapters.grid(row=2, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_num_chapters = tk.Frame(self.home_frame)
-        self.frame_num_chapters.columnconfigure(0, weight=1)
-        self.frame_num_chapters.grid(row=2, column=1, columnspan=2, sticky='we')
-        self.warning_label_num_chapters = tk.Label(self.frame_num_chapters, text='', fg='red')
-        self.border_num_chapters = tk.Frame(self.frame_num_chapters)
-        self.border_num_chapters.columnconfigure(0, weight=1)
-        self.border_num_chapters.grid(row=1, column=0, sticky='nswe')
-        self.entry_num_chapters = tk.Entry(self.border_num_chapters, textvariable=self.var_num_chapters)
-        self.entry_num_chapters.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        
-        # Linha 3.
-        self.label_base_link = tk.Label(self.home_frame, text='Link Inicial:', anchor='e')
-        self.label_base_link.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_base_link = tk.Frame(self.home_frame)
-        self.frame_base_link.columnconfigure(0, weight=1)
-        self.frame_base_link.grid(row=3, column=1, columnspan=2, sticky='nswe')
-        self.warning_label_base_link = tk.Label(self.frame_base_link, text='', fg='red')
-        self.border_base_link = tk.Frame(self.frame_base_link)
-        self.border_base_link.columnconfigure(0, weight=1)
-        self.border_base_link.grid(row=1, column=0, sticky='nswe')
-        self.entry_base_link = tk.Entry(self.border_base_link, textvariable=self.var_base_link, width=50)
-        self.entry_base_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 4.
-        self.label_last_link = tk.Label(self.home_frame, text='Último Link Aberto:', anchor='e')
-        self.label_last_link.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_last_link = tk.Frame(self.home_frame)
-        self.frame_last_link.columnconfigure(0, weight=1)
-        self.frame_last_link.grid(row=4, column=1, columnspan=2, sticky='we')
-        self.warning_label_last_link = tk.Label(self.frame_last_link, text='', fg='red')
-        self.border_last_link = tk.Frame(self.frame_last_link)
-        self.border_last_link.columnconfigure(0, weight=1)
-        self.border_last_link.grid(row=1, column=0, sticky='nswe')
-        self.entry_last_link = tk.Entry(self.border_last_link, textvariable=self.var_last_link)
-        self.entry_last_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 5.
-        self.frame_home_frame_buttons = tk.Frame(self.home_frame)
-        self.frame_home_frame_buttons.grid(row=5, column=0, columnspan=3)
-        command = partial(self.copy_last_link_to_base_link)
-        self.button_last_link = tk.Button(self.frame_home_frame_buttons, text='Colar Último Link no Inicial', command=command)
-        self.button_last_link.grid(row=0, column=0, columnspan=4, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.save_and_go_back)
-        self.button_config = tk.Button(self.frame_home_frame_buttons, text='Voltar', command=command)
-        self.button_config.grid(row=1, column=0, padx=3, pady=3, sticky='nswe')
-        command = partial(self.validate_to_delete_downloaded_chapters)
-        self.button_config = tk.Button(
-            self.frame_home_frame_buttons, text='Excluir Downloads', command=command
-        )
-        self.button_config.grid(row=1, column=1, padx=3, pady=3, sticky='nswe')
-        command = partial(self.switch_frame, 'config_frame')
-        self.button_config = tk.Button(self.frame_home_frame_buttons, text='Configurações', command=command)
-        self.button_config.grid(row=1, column=2, padx=3, pady=3, sticky='nswe')
-        command = partial(self.validate_to_download)
-        self.button_run = tk.Button(self.frame_home_frame_buttons, text='Baixar', command=command)
-        self.button_run.grid(row=1, column=3, padx=3, pady=3, sticky='nswe')
-
-        # Adiciona a lista de widgets existentes.
-        self.config_fields['num_chapters'] = {
-            'display_frame': 'home_frame',
-            'warning_label': self.warning_label_num_chapters,
-            'border': self.border_num_chapters,
-            'widget': self.entry_num_chapters,
-            'var': self.var_num_chapters
-        }
-        self.config_fields['base_link'] = {
-            'display_frame': 'home_frame',
-            'warning_label': self.warning_label_base_link,
-            'border': self.border_base_link,
-            'widget': self.entry_base_link,
-            'var': self.var_base_link
-        }
-        self.config_fields['last_link'] = {
-            'display_frame': 'home_frame',
-            'warning_label': self.warning_label_last_link,
-            'border': self.border_last_link,
-            'widget': self.entry_last_link,
-            'var': self.var_last_link
-        }
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['home_frame'] = {
-            'frame': self.home_frame,
-            'widget_to_focus': ''
-        }
-
-        # ==============================================================================================================
-        # ConfigFrame.
-        # Variáveis.
-        self.config_frame = tk.Frame(self.window)
-        self.var_manga_name = tk.StringVar()
-        self.var_final_dir = tk.StringVar()
-        self.var_download_dir = tk.StringVar()
-        self.var_files_dir = tk.StringVar()
-        self.var_chapter_number_by = tk.StringVar()
-        self.var_chapter_number_value = tk.StringVar()
-        self.var_select = tk.BooleanVar()
-        self.var_select_read_mode_by = tk.StringVar()
-        self.var_select_read_mode_value = tk.StringVar()
-        self.var_visible_text = tk.StringVar()
-        self.var_frames_location_by = tk.StringVar()
-        self.var_frames_location_value = tk.StringVar()
-        self.var_imgs_location_by = tk.StringVar()
-        self.var_imgs_location_value = tk.StringVar()
-        self.var_next_page_button_location_by = tk.StringVar()
-        self.var_next_page_button_location_value = tk.StringVar()
-
-        # Elementos.
-        # Linha 0.
-        self.label_config = tk.Label(self.config_frame, text='Configurações', font=10)
-        self.label_config.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.label_manga_name = tk.Label(self.config_frame, text='Nome do Mangá:', anchor='e')
-        self.label_manga_name.grid(row=1, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_manga_name = tk.Frame(self.config_frame)
-        self.frame_manga_name.columnconfigure(0, weight=1)
-        self.frame_manga_name.grid(row=1, column=1, sticky='we')
-        self.warning_label_manga_name = tk.Label(self.frame_manga_name, text='', fg='red')
-        self.border_manga_name = tk.Frame(self.frame_manga_name)
-        self.border_manga_name.columnconfigure(0, weight=1)
-        self.border_manga_name.grid(row=1, column=0, sticky='nswe')
-        self.entry_manga_name = tk.Entry(self.border_manga_name, textvariable=self.var_manga_name)
-        self.entry_manga_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 4.
-        self.label_final_dir = tk.Label(self.config_frame, text='Pasta Final:', anchor='e')
-        self.label_final_dir.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_final_dir = tk.Frame(self.config_frame)
-        self.frame_final_dir.columnconfigure(0, weight=1)
-        self.frame_final_dir.grid(row=4, column=1, sticky='we')
-        self.warning_label_final_dir = tk.Label(self.frame_final_dir, text='', fg='red')
-        self.border_final_dir = tk.Frame(self.frame_final_dir)
-        self.border_final_dir.columnconfigure(0, weight=1)
-        self.border_final_dir.grid(row=1, column=0, sticky='nswe')
-        self.entry_final_dir = tk.Entry(self.border_final_dir, textvariable=self.var_final_dir)
-        self.entry_final_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.select_dir, 'Selecione pasta de destino dos mangás.', self.var_final_dir)
-        self.button_final_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-        self.button_final_dir.grid(row=4, column=2, padx=self.default_padx, sticky='swe')
-
-        # Linha 5.
-        self.label_download_dir = tk.Label(self.config_frame, text='Pasta de Download:', anchor='e')
-        self.label_download_dir.grid(row=5, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_download_dir = tk.Frame(self.config_frame)
-        self.frame_download_dir.columnconfigure(0, weight=1)
-        self.frame_download_dir.grid(row=5, column=1, sticky='we')
-        self.warning_label_download_dir = tk.Label(self.frame_download_dir, text='', fg='red')
-        self.border_download_dir = tk.Frame(self.frame_download_dir)
-        self.border_download_dir.columnconfigure(0, weight=1)
-        self.border_download_dir.grid(row=1, column=0, sticky='nswe')
-        self.entry_download_dir = tk.Entry(self.border_download_dir, textvariable=self.var_download_dir)
-        self.entry_download_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.select_dir, 'Selecione pasta de download padrão do navegador.', self.var_download_dir)
-        self.button_download_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-        self.button_download_dir.grid(row=5, column=2, padx=self.default_padx, sticky='swe')
-
-        # Linha 6.
-        self.label_files_dir = tk.Label(self.config_frame, text='Pasta de Arquivos:', anchor='e')
-        self.label_files_dir.grid(row=6, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_files_dir = tk.Frame(self.config_frame)
-        self.frame_files_dir.columnconfigure(0, weight=1)
-        self.frame_files_dir.grid(row=6, column=1, sticky='we')
-        self.warning_label_files_dir = tk.Label(self.frame_files_dir, text='', fg='red')
-        self.border_files_dir = tk.Frame(self.frame_files_dir)
-        self.border_files_dir.columnconfigure(0, weight=1)
-        self.border_files_dir.grid(row=1, column=0, sticky='nswe')
-        self.entry_files_dir = tk.Entry(self.border_files_dir, textvariable=self.var_files_dir)
-        self.entry_files_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.select_dir, 'Selecione pasta para manipulação das imagens.', self.var_files_dir)
-        self.button_files_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-        self.button_files_dir.grid(row=6, column=2, padx=self.default_padx, sticky='swe')
-
-        # Linha 7.
-        self.label_chapter_number_by = tk.Label(self.config_frame, text='Identificador de capítulo:', anchor='e')
-        self.label_chapter_number_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_chapter_number_value = tk.Frame(self.config_frame)
-        self.frame_chapter_number_value.columnconfigure(0, weight=1)
-        self.frame_chapter_number_value.grid(row=7, column=1, sticky='we')
-        self.warning_label_chapter_number_value = tk.Label(self.frame_chapter_number_value, text='', fg='red')
-        self.border_chapter_number_value = tk.Frame(self.frame_chapter_number_value)
-        self.border_chapter_number_value.columnconfigure(0, weight=1)
-        self.border_chapter_number_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_chapter_number_value = tk.Entry(self.border_chapter_number_value, textvariable=self.var_chapter_number_value)
-        self.entry_chapter_number_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        self.frame_chapter_number_by = tk.Frame(self.config_frame)
-        self.frame_chapter_number_by.columnconfigure(0, weight=1)
-        self.frame_chapter_number_by.grid(row=7, column=2, sticky='we')
-        self.warning_label_chapter_number_by = tk.Label(self.frame_chapter_number_by, text='', fg='red')
-        self.border_chapter_number_by = tk.Frame(self.frame_chapter_number_by)
-        self.border_chapter_number_by.columnconfigure(0, weight=1)
-        self.border_chapter_number_by.grid(row=1, column=0, sticky='nswe')
-        self.option_menu_chapter_number_by = tk.OptionMenu(
-            self.border_chapter_number_by,  self.var_chapter_number_by,
-            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
-        )
-        self.option_menu_chapter_number_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 8.
-        self.label_select = tk.Label(self.config_frame, text='Identificador é um select:', anchor='e')
-        self.label_select.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
-        self.check_button_select = tk.Checkbutton(self.config_frame, variable=self.var_select, onvalue=0)
-        self.check_button_select.grid(row=8, column=1, padx=5, pady=1, sticky='nswe')
-
-        # Linha 9.
-        self.label_select_read_mode_by = tk.Label(self.config_frame, text='Seletor:', anchor='e')
-        self.label_select_read_mode_by.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_select_read_mode_value = tk.Frame(self.config_frame)
-        self.frame_select_read_mode_value.columnconfigure(0, weight=1)
-        self.frame_select_read_mode_value.grid(row=9, column=1, sticky='we')
-        self.warning_label_select_read_mode_value = tk.Label(self.frame_select_read_mode_value, text='', fg='red')
-        self.border_select_read_mode_value = tk.Frame(self.frame_select_read_mode_value)
-        self.border_select_read_mode_value.columnconfigure(0, weight=1)
-        self.border_select_read_mode_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_select_read_mode_value = tk.Entry(self.border_select_read_mode_value, textvariable=self.var_select_read_mode_value)
-        self.entry_select_read_mode_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        self.frame_select_read_mode_by = tk.Frame(self.config_frame)
-        self.frame_select_read_mode_by.columnconfigure(0, weight=1)
-        self.frame_select_read_mode_by.grid(row=9, column=2, sticky='we')
-        self.warning_label_select_read_mode_by = tk.Label(self.frame_select_read_mode_by, text='', fg='red')
-        self.border_select_read_mode_by = tk.Frame(self.frame_select_read_mode_by)
-        self.border_select_read_mode_by.columnconfigure(0, weight=1)
-        self.border_select_read_mode_by.grid(row=1, column=0, sticky='nswe')
-        self.option_menu_select_read_mode_by = tk.OptionMenu(
-            self.border_select_read_mode_by, self.var_select_read_mode_by,
-            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
-        )
-        self.option_menu_select_read_mode_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 10.
-        self.label_visible_text = tk.Label(self.config_frame, text='Texto da opção:', anchor='e')
-        self.label_visible_text.grid(row=10, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_visible_text = tk.Frame(self.config_frame)
-        self.frame_visible_text.columnconfigure(0, weight=1)
-        self.frame_visible_text.grid(row=10, column=1, sticky='we')
-        self.warning_label_visible_text = tk.Label(self.frame_visible_text, text='', fg='red')
-        self.border_visible_text = tk.Frame(self.frame_visible_text)
-        self.border_visible_text.columnconfigure(0, weight=1)
-        self.border_visible_text.grid(row=1, column=0, sticky='nswe')
-        self.entry_visible_text = tk.Entry(self.border_visible_text, textvariable=self.var_visible_text)
-        self.entry_visible_text.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 11.
-        self.label_frames_location_by = tk.Label(self.config_frame, text='Quadros:', anchor='e')
-        self.label_frames_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_frames_location_value = tk.Frame(self.config_frame)
-        self.frame_frames_location_value.columnconfigure(0, weight=1)
-        self.frame_frames_location_value.grid(row=11, column=1, sticky='we')
-        self.warning_label_frames_location_value = tk.Label(self.frame_frames_location_value, text='', fg='red')
-        self.border_frames_location_value = tk.Frame(self.frame_frames_location_value)
-        self.border_frames_location_value.columnconfigure(0, weight=1)
-        self.border_frames_location_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_frames_location_value = tk.Entry(self.border_frames_location_value, textvariable=self.var_frames_location_value)
-        self.entry_frames_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        self.frame_frames_location_by = tk.Frame(self.config_frame)
-        self.frame_frames_location_by.columnconfigure(0, weight=1)
-        self.frame_frames_location_by.grid(row=11, column=2, sticky='we')
-        self.warning_label_frames_location_by = tk.Label(self.frame_frames_location_by, text='', fg='red')
-        self.border_frames_location_by = tk.Frame(self.frame_frames_location_by)
-        self.border_frames_location_by.columnconfigure(0, weight=1)
-        self.border_frames_location_by.grid(row=1, column=0, sticky='nswe')
-        self.option_menu_frames_location_by = tk.OptionMenu(
-            self.border_frames_location_by,  self.var_frames_location_by,
-            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
-        )
-        self.option_menu_frames_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 12.
-        self.label_imgs_location_by = tk.Label(self.config_frame, text='Imagens:', anchor='e')
-        self.label_imgs_location_by.grid(row=12, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_imgs_location_value = tk.Frame(self.config_frame)
-        self.frame_imgs_location_value.columnconfigure(0, weight=1)
-        self.frame_imgs_location_value.grid(row=12, column=1, sticky='we')
-        self.warning_label_imgs_location_value = tk.Label(self.frame_imgs_location_value, text='', fg='red')
-        self.border_imgs_location_value = tk.Frame(self.frame_imgs_location_value)
-        self.border_imgs_location_value.columnconfigure(0, weight=1)
-        self.border_imgs_location_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_imgs_location_value = tk.Entry(self.border_imgs_location_value, textvariable=self.var_imgs_location_value)
-        self.entry_imgs_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        self.frame_imgs_location_by = tk.Frame(self.config_frame)
-        self.frame_imgs_location_by.columnconfigure(0, weight=1)
-        self.frame_imgs_location_by.grid(row=12, column=2, sticky='we')
-        self.warning_label_imgs_location_by = tk.Label(self.frame_imgs_location_by, text='', fg='red')
-        self.border_imgs_location_by = tk.Frame(self.frame_imgs_location_by)
-        self.border_imgs_location_by.columnconfigure(0, weight=1)
-        self.border_imgs_location_by.grid(row=1, column=0, sticky='nswe')
-        self.option_menu_imgs_location_by = tk.OptionMenu(
-            self.border_imgs_location_by,  self.var_imgs_location_by,
-            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
-        )
-        self.option_menu_imgs_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 13.
-        self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Botão de Avançar:', anchor='e')
-        self.label_next_page_button_location_by.grid(row=13, column=0, padx=5, pady=1, sticky='nswe')
-        self.frame_next_page_button_location_value = tk.Frame(self.config_frame)
-        self.frame_next_page_button_location_value.columnconfigure(0, weight=1)
-        self.frame_next_page_button_location_value.grid(row=13, column=1, sticky='we')
-        self.warning_label_next_page_button_location_value = tk.Label(
-            self.frame_next_page_button_location_value, text='', fg='red'
-        )
-        self.border_next_page_button_location_value = tk.Frame(self.frame_next_page_button_location_value)
-        self.border_next_page_button_location_value.columnconfigure(0, weight=1)
-        self.border_next_page_button_location_value.grid(row=1, column=0, sticky='nswe')
-        self.entry_next_page_button_location_value = tk.Entry(
-            self.border_next_page_button_location_value, textvariable=self.var_next_page_button_location_value
-        )
-        self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        self.frame_next_page_button_location_by = tk.Frame(self.config_frame)
-        self.frame_next_page_button_location_by.columnconfigure(0, weight=1)
-        self.frame_next_page_button_location_by.grid(row=11, column=2, sticky='we')
-        self.warning_label_next_page_button_location_by = tk.Label(self.frame_next_page_button_location_by, text='', fg='red')
-        self.border_next_page_button_location_by = tk.Frame(self.frame_next_page_button_location_by)
-        self.border_next_page_button_location_by.columnconfigure(0, weight=1)
-        self.border_next_page_button_location_by.grid(row=1, column=0, sticky='nswe')
-        self.option_menu_next_page_button_location_by = tk.OptionMenu(
-            self.border_next_page_button_location_by,  self.var_next_page_button_location_by,
-            "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector"
-        )
-        self.option_menu_next_page_button_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Linha 14.
-        self.frame_info_frame_buttons = tk.Frame(self.config_frame)
-        self.frame_info_frame_buttons.grid(row=14, column=1, padx=2)
-        self.frame_info_frame_buttons.columnconfigure(0, weight=1)
-        self.info_frame_space = tk.Label(self.frame_info_frame_buttons, text='')
-        self.info_frame_space.grid(row=0, column=0)
-        command = partial(self.ask_confirmation_to_reset)
-        self.button_reset = tk.Button(self.frame_info_frame_buttons, text='Configuração Padrão', command=command)
-        self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
-        command = partial(self.save_and_go_back)
-        self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
-        self.button_back.grid(row=14, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
-
-        # Adiciona a lista de widgets existentes.
-        self.config_fields['manga_name'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_manga_name,
-            'border': self.border_manga_name,
-            'widget': self.entry_manga_name,
-            'var': self.var_manga_name
-        }
-        self.config_fields['final_dir'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_final_dir,
-            'border': self.border_final_dir,
-            'widget': self.entry_final_dir,
-            'var': self.var_final_dir
-        }
-        self.config_fields['download_dir'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_download_dir,
-            'border': self.border_download_dir,
-            'widget': self.entry_download_dir,
-            'var': self.var_download_dir
-        }
-        self.config_fields['files_dir'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_files_dir,
-            'border': self.border_files_dir,
-            'widget': self.entry_files_dir,
-            'var': self.var_files_dir
-        }
-        self.config_fields['select'] = {
-            'display_frame': 'config_frame',
-            'warning_label': '',
-            'border': '',
-            'widget': self.check_button_select,
-            'var': self.var_select
-        }
-        self.config_fields['chapter_number_by'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_chapter_number_by,
-            'border': self.border_chapter_number_by,
-            'widget': self.option_menu_chapter_number_by,
-            'var': self.var_chapter_number_by
-        }
-        self.config_fields['chapter_number_value'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_chapter_number_value,
-            'border': self.border_chapter_number_value,
-            'widget': self.entry_chapter_number_value,
-            'var': self.var_chapter_number_value
-        }
-        self.config_fields['select_read_mode_by'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_select_read_mode_by,
-            'border': self.border_select_read_mode_by,
-            'widget': self.option_menu_select_read_mode_by,
-            'var': self.var_select_read_mode_by
-        }
-        self.config_fields['select_read_mode_value'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_select_read_mode_value,
-            'border': self.border_select_read_mode_value,
-            'widget': self.entry_select_read_mode_value,
-            'var': self.var_select_read_mode_value
-        }
-        self.config_fields['visible_text'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_visible_text,
-            'border': self.border_visible_text,
-            'widget': self.entry_visible_text,
-            'var': self.var_visible_text
-        }
-        self.config_fields['frames_location_by'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_frames_location_by,
-            'border': self.border_frames_location_by,
-            'widget': self.option_menu_frames_location_by,
-            'var': self.var_frames_location_by
-        }
-        self.config_fields['frames_location_value'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_frames_location_value,
-            'border': self.border_frames_location_value,
-            'widget': self.entry_frames_location_value,
-            'var': self.var_frames_location_value
-        }
-        self.config_fields['imgs_location_by'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_imgs_location_by,
-            'border': self.border_imgs_location_by,
-            'widget': self.option_menu_imgs_location_by,
-            'var': self.var_imgs_location_by
-        }
-        self.config_fields['imgs_location_value'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_imgs_location_value,
-            'border': self.border_imgs_location_value,
-            'widget': self.entry_imgs_location_value,
-            'var': self.var_imgs_location_value
-        }
-        self.config_fields['next_page_button_location_by'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_next_page_button_location_by,
-            'border': self.border_next_page_button_location_by,
-            'widget': self.option_menu_next_page_button_location_by,
-            'var': self.var_next_page_button_location_by
-        }
-        self.config_fields['next_page_button_location_value'] = {
-            'display_frame': 'config_frame',
-            'warning_label': self.warning_label_next_page_button_location_value,
-            'border': self.border_next_page_button_location_value,
-            'widget': self.entry_next_page_button_location_value,
-            'var': self.var_next_page_button_location_value
-        }
-
-        # Adiciona às janelas existentes.
-        self.app_frames['config_frame'] = {
-            'frame': self.config_frame,
-            'widget_to_focus': ''
-        }
-
-        # ==============================================================================================================
-        # ConfirmationFrame.
-        # Variáveis.
-        self.confirmation_frame = tk.Frame(self.window)
-        self.confirmation_frame_max_char_per_line = 50
-
-        # Elementos.
-        # Linha 0.
-        self.label_confirmation_title = tk.Label(self.confirmation_frame, font=10)
-        self.label_confirmation_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.label_confirmation_description = tk.Label(self.confirmation_frame, anchor='w')
-        self.label_confirmation_description.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
-
-        # Linha 2.
-        self.frame_confirmation_frame_buttons = tk.Frame(self.confirmation_frame)
-        self.frame_confirmation_frame_buttons.grid(row=2, column=0, columnspan=3)
-        self.frame_confirmation_frame_buttons.columnconfigure(0, weight=1)
-        self.info_frame_space = tk.Label(self.frame_confirmation_frame_buttons, text='')
-        self.info_frame_space.grid(row=0, column=0)
-        command = partial(self.cancel)
-        self.cancelation_button = tk.Button(self.frame_confirmation_frame_buttons, text='Cancelar', command=command)
-        self.cancelation_button.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-        command = partial(self.execute_awaiting_function)
-        self.confirmation_button = tk.Button(self.frame_confirmation_frame_buttons, text='Confirmar', command=command)
-        self.confirmation_button.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['confirmation_frame'] = {
-            'frame': self.confirmation_frame,
-            'widget_to_focus': ''
-        }
-
-        # ==============================================================================================================
-        # InfoFrame.
-        # Variáveis.
-        self.info_frame = tk.Frame(self.window)
-        self.num_info_lines = 7
-        self.info_frame_max_char_per_line = 50
-        self.dynamic_button_action = 'go_home'
-        self.dynamic_button_text = 'Voltar'
-
-        # Elementos.
-        # Linha 0.
-        self.label_info_title = tk.Label(self.info_frame, font=10)
-        self.label_info_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
-
-        # Linha 1.
-        self.scrolled_textbox = scrolledtext.ScrolledText(
-            self.info_frame, width=self.info_frame_max_char_per_line, height=self.num_info_lines, cursor='arrow'
-        )
-        self.scrolled_textbox.grid(row=1, column=0, columnspan=3, padx=5, pady=self.default_pady, sticky='nswe')
-
-        # Linha 2.
-        command = partial(self.execute_dynamic_button_action)
-        self.dynamic_button = tk.Button(self.info_frame, text=self.dynamic_button_text, command=command)
-        self.dynamic_button.grid(row=2, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-
-        # Adiciona à lista de janelas existentes.
-        self.app_frames['info_frame'] = {
-            'frame': self.info_frame,
-            'widget_to_focus': ''
-        }
-
-        # ==============================================================================================================
+        def build_root_window():
+            # Variáveis.
+            self.window = tk.Tk()
+            self.title = 'MADO'
+            self.window.title(self.title)
+            self.browser_handle = 0
+            self.queue = Queue()
+            self.download_process = None
+            self.default_padx = 2
+            self.default_pady = 2
+            self.selected_config_set = ''
+            self.current_config_set = ''
+            self.awaiting_function = ''
+            self.bread_crumbs = []
+            self.app_frames = {}
+            self.config_fields = {}
+            self.var_chapter_number_by = tk.StringVar()
+            self.var_chapter_number_value = tk.StringVar()
+            self.var_select = tk.BooleanVar()
+            self.configs_for_download = [
+                'manga_name',
+                'num_chapters',
+                'base_link',
+                'last_link',
+                'final_dir',
+                'download_dir',
+                'files_dir',
+                'chapter_number_by',
+                'chapter_number_value',
+                'is_select'
+                'select_read_mode_by',
+                'select_read_mode_value',
+                'visible_text',
+                'frames_location_by',
+                'frames_location_value',
+                'imgs_location_by',
+                'imgs_location_value',
+                'next_page_button_location_by',
+                'next_page_button_location_value'
+            ]
+            self.frames = {}
+
+            # Instancia classe de configuração.
+            self.config_ma = ConfigManager()
+
+            # Instancia classe de manipulação do sistema.
+            self.system_ma = SystemManager()
+
+            # Configuração de fonte.
+            self.defaultFont = font.nametofont("TkDefaultFont")
+            self.defaultFont.configure(family='Verdana', size=9)
+        build_root_window()
+
+        def build_menu_frame():
+            # Variáveis.
+            self.menu_frame = tk.Frame(self.window)
+
+            # Elementos.
+            # Linha 0.
+            self.label_menu_title = tk.Label(self.menu_frame, text='Menu', font=10)
+            self.label_menu_title.grid(row=0, column=0, padx=50, pady=5, sticky='nswe')
+
+            # Linha 1.
+            command = partial(self.load_last_config_set_loaded)
+            self.button_load_last_config_set = tk.Button(self.menu_frame, text='Carregar Último', command=command, state='disabled')
+            self.button_load_last_config_set.grid(row=1, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 2.
+            command = partial(self.open_selection_frame, 'continue_to_load', 'Selecione para carregar.')
+            self.button_select_to_load = tk.Button(self.menu_frame, text='Selecionar', command=command, state='disabled')
+            self.button_select_to_load.grid(row=2, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 3.
+            command = partial(self.switch_frame, Frames.CREATION_FRAME)
+            self.button_create_config_set = tk.Button(self.menu_frame, text='Criar', command=command)
+            self.button_create_config_set.grid(row=3, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 4.
+            command = partial(self.open_selection_frame, 'ask_confirmation_to_delete', 'Selecione para deletar.')
+            self.button_delete_config_set = tk.Button(self.menu_frame, text='Deletar', command=command, state='disabled')
+            self.button_delete_config_set.grid(row=4, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 5.
+            command = partial(self.open_selection_frame, 'continue_to_rename', 'Selecione para renomear.')
+            self.button_rename_config_set = tk.Button(self.menu_frame, text='Renomear', command=command, state='disabled')
+            self.button_rename_config_set.grid(row=5, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 6.
+            command = partial(self.close_app)
+            self.button_close_app = tk.Button(self.menu_frame, text='Sair', command=command)
+            self.button_close_app.grid(row=6, column=0, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['menu_frame'] = {
+                'frame': self.menu_frame,
+                'widget_to_focus': ''
+            }
+
+            # Verifica opções disponíveis do menu.
+            self.menu_frame.bind('<Map>', self.manage_menu_buttons_states)
+        build_menu_frame()
+
+        def build_selection_frame():
+            # Variáveis.
+            self.selection_frame = tk.Frame(self.window)
+            self.var_config_set_name = tk.StringVar()
+            self.var_config_set_to_copy = tk.StringVar()
+
+            # Elementos.
+            # Linha 0.
+            self.label_selection_frame_title = tk.Label(self.selection_frame, text='', font=10)
+            self.label_selection_frame_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.frame_listbox = tk.Frame(self.selection_frame)
+            self.frame_listbox.grid(row=1, column=0, columnspan=3, padx=5, pady=5, sticky='nsew')
+            self.frame_listbox.columnconfigure(0, weight=1)
+            self.scrollbar = tk.Scrollbar(self.frame_listbox)
+            self.scrollbar.grid(row=0, column=1, sticky="nswe")
+            self.listbox_config_sets = tk.Listbox(self.frame_listbox, yscrollcommand=self.scrollbar.set)
+            self.listbox_config_sets.grid(row=0, column=0, sticky="nswe")
+
+            # Linha 2.
+            self.frame_selection_frame_buttons = tk.Frame(self.selection_frame)
+            self.frame_selection_frame_buttons.columnconfigure(0, weight=1)
+            self.frame_selection_frame_buttons.grid(row=2, column=0, columnspan=3, sticky='nswe')
+            self.space = tk.Label(self.frame_selection_frame_buttons, text='')
+            self.space.grid(row=0, column=0)
+            command = partial(self.go_back)
+            self.button_go_back = tk.Button(self.frame_selection_frame_buttons, text='Voltar', command=command)
+            self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.select_config_set)
+            self.button_select = tk.Button(self.frame_selection_frame_buttons, text='Selecionar', command=command, state='disabled')
+            self.button_select.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['selection_frame'] = {
+                'frame': self.selection_frame,
+                'widget_to_focus': ''
+            }
+
+            # Associa a seleção do listbox a ativação do botão de seleção.
+            self.listbox_config_sets.bind('<FocusIn>', self.manage_button_select_state)
+            self.listbox_config_sets.bind('<Unmap>', self.manage_button_select_state)
+        build_selection_frame()
+
+        def build_creation_frame():
+            # Variáveis.
+            self.creation_frame = tk.Frame(self.window)
+            self.var_config_set_name = tk.StringVar()
+            self.var_config_set_to_copy = tk.StringVar()
+
+            # Elementos.
+            # Linha 0.
+            self.label_menu_title = tk.Label(self.creation_frame, text='Criação de perfil', font=10)
+            self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.label_config_set_name = tk.Label(self.creation_frame, text='Nome:', anchor='e')
+            self.label_config_set_name.grid(row=1, column=0, padx=5, pady=5, sticky='nswe')
+            self.frame_config_set_name = tk.Frame(self.creation_frame)
+            self.frame_config_set_name.columnconfigure(0, weight=1)
+            self.frame_config_set_name.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
+            self.warning_label_config_set_name = tk.Label(self.frame_config_set_name, text='', fg='red')
+            self.border_config_set_name = tk.Frame(self.frame_config_set_name)
+            self.border_config_set_name.columnconfigure(0, weight=1)
+            self.border_config_set_name.grid(row=1, column=0, sticky='nswe')
+            self.entry_config_set_name = tk.Entry(self.border_config_set_name, textvariable=self.var_config_set_name)
+            self.entry_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 2.
+            self.label_config_set_to_copy = tk.Label(self.creation_frame, text='Perfil à\nser copiado:', anchor='e')
+            self.label_config_set_to_copy.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
+            self.frame_config_set_to_copy = tk.Frame(self.creation_frame)
+            self.frame_config_set_to_copy.columnconfigure(0, weight=1)
+            self.frame_config_set_to_copy.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
+            self.warning_label_config_set_to_copy = tk.Label(self.frame_config_set_to_copy, text='', fg='red')
+            self.border_config_set_to_copy = tk.Frame(self.frame_config_set_to_copy)
+            self.border_config_set_to_copy.columnconfigure(0, weight=1)
+            self.border_config_set_to_copy.grid(row=1, column=0, sticky='nswe')
+            self.entry_config_set_to_copy = tk.Entry(
+                self.border_config_set_to_copy, textvariable=self.var_config_set_to_copy, state='disabled', cursor='arrow'
+            )
+            self.entry_config_set_to_copy.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 3.
+            self.frame_creation_frame_buttons = tk.Frame(self.creation_frame)
+            self.frame_creation_frame_buttons.columnconfigure(0, weight=1)
+            self.frame_creation_frame_buttons.grid(row=3, column=0, columnspan=3, sticky='nswe')
+            command = partial(self.go_back)
+            self.button_go_back = tk.Button(self.frame_creation_frame_buttons, text='Voltar', command=command)
+            self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.open_selection_frame, 'continue_to_create', 'Selecione para copiar.')
+            self.button_select_to_copy = tk.Button(self.frame_creation_frame_buttons, text='Selecionar', command=command)
+            self.button_select_to_copy.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.validate_to_create)
+            self.button_create = tk.Button(self.frame_creation_frame_buttons, text='Criar', command=command)
+            self.button_create.grid(row=0, column=3, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona a lista de widgets existentes.
+            self.config_fields['config_set_name'] = {
+                'display_frame': 'creation_frame',
+                'warning_label': self.warning_label_config_set_name,
+                'border': self.border_config_set_name,
+                'widget': self.entry_config_set_name,
+                'var': self.var_config_set_name
+            }
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['creation_frame'] = {
+                'frame': self.creation_frame,
+                'widget_to_focus': self.entry_config_set_name
+            }
+        build_creation_frame()
+
+        def build_rename_frame():
+            # Variáveis.
+            self.rename_frame = tk.Frame(self.window)
+            self.var_current_config_set_name = tk.StringVar()
+            self.var_new_config_set_name = tk.StringVar()
+
+            # Elementos.
+            # Linha 0.
+            self.label_menu_title = tk.Label(self.rename_frame, text='Renomear perfil.', font=10)
+            self.label_menu_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.label_current_config_set_name = tk.Label(self.rename_frame, text='Atual:', anchor='e')
+            self.label_current_config_set_name.grid(row=1, column=0, padx=5, pady=5, sticky='nswe')
+            self.frame_current_config_set_name = tk.Frame(self.rename_frame)
+            self.frame_current_config_set_name.columnconfigure(0, weight=1)
+            self.frame_current_config_set_name.grid(row=1, column=1, columnspan=2, padx=5, sticky='we')
+            self.warning_label_current_config_set_name = tk.Label(self.frame_current_config_set_name, text='', fg='red')
+            self.border_current_config_set_name = tk.Frame(self.frame_current_config_set_name)
+            self.border_current_config_set_name.columnconfigure(0, weight=1)
+            self.border_current_config_set_name.grid(row=1, column=0, sticky='nswe')
+            self.entry_current_config_set_name = tk.Entry(
+                self.border_current_config_set_name, textvariable=self.var_current_config_set_name, state='disabled', cursor='arrow'
+            )
+            self.entry_current_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 2.
+            self.label_new_config_set_name = tk.Label(self.rename_frame, text='Novo:', anchor='e')
+            self.label_new_config_set_name.grid(row=2, column=0, padx=5, pady=5, sticky='nswe')
+            self.frame_new_config_set_name = tk.Frame(self.rename_frame)
+            self.frame_new_config_set_name.columnconfigure(0, weight=1)
+            self.frame_new_config_set_name.grid(row=2, column=1, columnspan=2, padx=5, sticky='we')
+            self.warning_label_new_config_set_name = tk.Label(self.frame_new_config_set_name, text='', fg='red')
+            self.border_new_config_set_name = tk.Frame(self.frame_new_config_set_name)
+            self.border_new_config_set_name.columnconfigure(0, weight=1)
+            self.border_new_config_set_name.grid(row=1, column=0, sticky='nswe')
+            self.entry_new_config_set_name = tk.Entry(self.border_new_config_set_name, textvariable=self.var_new_config_set_name)
+            self.entry_new_config_set_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 3.
+            self.frame_rename_frame_buttons = tk.Frame(self.rename_frame)
+            self.frame_rename_frame_buttons.columnconfigure(0, weight=1)
+            self.frame_rename_frame_buttons.grid(row=3, column=0, columnspan=3, sticky='nswe')
+            command = partial(self.go_back)
+            self.button_go_back = tk.Button(self.frame_rename_frame_buttons, text='Voltar', command=command)
+            self.button_go_back.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.validate_to_rename)
+            self.button_create = tk.Button(self.frame_rename_frame_buttons, text='Renomear', command=command)
+            self.button_create.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona a lista de widgets existentes.
+            self.config_fields['new_config_set_name'] = {
+                'display_frame': 'rename_frame',
+                'warning_label': self.warning_label_new_config_set_name,
+                'border': self.border_new_config_set_name,
+                'widget': self.entry_new_config_set_name,
+                'var': self.var_new_config_set_name
+            }
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['rename_frame'] = {
+                'frame': self.rename_frame,
+                'widget_to_focus': self.entry_new_config_set_name
+            }
+        build_rename_frame()
+
+        def build_home_frame():
+            # Variáveis.
+            self.home_frame = tk.Frame(self.window)
+            self.var_num_chapters = tk.StringVar()
+            self.var_final_chapter = tk.StringVar()
+            self.var_base_link = tk.StringVar()
+            self.var_last_link = tk.StringVar()
+            self.chapters_files = []
+
+            # Elementos.
+            # Linha 0.
+            self.label_manga_name = tk.Label(self.home_frame, text='Home', font=10)
+            self.label_manga_name.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.label_loaded_config_set_name = tk.Label(self.home_frame, text='', anchor='center')
+            self.label_loaded_config_set_name.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+
+            # Linha 2.
+            self.label_num_chapters = tk.Label(self.home_frame, text='Quantidade de capítulos:', anchor='e')
+            self.label_num_chapters.grid(row=2, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_num_chapters = tk.Frame(self.home_frame)
+            self.frame_num_chapters.columnconfigure(0, weight=1)
+            self.frame_num_chapters.grid(row=2, column=1, columnspan=2, sticky='we')
+            self.warning_label_num_chapters = tk.Label(self.frame_num_chapters, text='', fg='red')
+            self.border_num_chapters = tk.Frame(self.frame_num_chapters)
+            self.border_num_chapters.columnconfigure(0, weight=1)
+            self.border_num_chapters.grid(row=1, column=0, sticky='nswe')
+            self.entry_num_chapters = tk.Entry(self.border_num_chapters, textvariable=self.var_num_chapters)
+            self.entry_num_chapters.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 3.
+            self.label_base_link = tk.Label(self.home_frame, text='Link Inicial:', anchor='e')
+            self.label_base_link.grid(row=3, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_base_link = tk.Frame(self.home_frame)
+            self.frame_base_link.columnconfigure(0, weight=1)
+            self.frame_base_link.grid(row=3, column=1, columnspan=2, sticky='nswe')
+            self.warning_label_base_link = tk.Label(self.frame_base_link, text='', fg='red')
+            self.border_base_link = tk.Frame(self.frame_base_link)
+            self.border_base_link.columnconfigure(0, weight=1)
+            self.border_base_link.grid(row=1, column=0, sticky='nswe')
+            self.entry_base_link = tk.Entry(self.border_base_link, textvariable=self.var_base_link, width=50)
+            self.entry_base_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 4.
+            self.label_last_link = tk.Label(self.home_frame, text='Último Link Aberto:', anchor='e')
+            self.label_last_link.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_last_link = tk.Frame(self.home_frame)
+            self.frame_last_link.columnconfigure(0, weight=1)
+            self.frame_last_link.grid(row=4, column=1, columnspan=2, sticky='we')
+            self.warning_label_last_link = tk.Label(self.frame_last_link, text='', fg='red')
+            self.border_last_link = tk.Frame(self.frame_last_link)
+            self.border_last_link.columnconfigure(0, weight=1)
+            self.border_last_link.grid(row=1, column=0, sticky='nswe')
+            self.entry_last_link = tk.Entry(self.border_last_link, textvariable=self.var_last_link)
+            self.entry_last_link.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 5.
+            self.frame_home_frame_buttons = tk.Frame(self.home_frame)
+            self.frame_home_frame_buttons.grid(row=5, column=0, columnspan=3)
+            command = partial(self.copy_last_link_to_base_link)
+            self.button_last_link = tk.Button(self.frame_home_frame_buttons, text='Colar Último Link no Inicial', command=command)
+            self.button_last_link.grid(row=0, column=0, columnspan=4, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.save_and_go_back)
+            self.button_config = tk.Button(self.frame_home_frame_buttons, text='Voltar', command=command)
+            self.button_config.grid(row=1, column=0, padx=3, pady=3, sticky='nswe')
+            command = partial(self.validate_to_delete_downloaded_chapters)
+            self.button_config = tk.Button(
+                self.frame_home_frame_buttons, text='Excluir Downloads', command=command
+            )
+            self.button_config.grid(row=1, column=1, padx=3, pady=3, sticky='nswe')
+            command = partial(self.switch_frame, Frames.CONFIG_FRAME)
+            self.button_config = tk.Button(self.frame_home_frame_buttons, text='Configurações', command=command)
+            self.button_config.grid(row=1, column=2, padx=3, pady=3, sticky='nswe')
+            command = partial(self.validate_to_download)
+            self.button_run = tk.Button(self.frame_home_frame_buttons, text='Baixar', command=command)
+            self.button_run.grid(row=1, column=3, padx=3, pady=3, sticky='nswe')
+
+            # Adiciona a lista de widgets existentes.
+            self.config_fields['num_chapters'] = {
+                'display_frame': 'home_frame',
+                'warning_label': self.warning_label_num_chapters,
+                'border': self.border_num_chapters,
+                'widget': self.entry_num_chapters,
+                'var': self.var_num_chapters
+            }
+            self.config_fields['base_link'] = {
+                'display_frame': 'home_frame',
+                'warning_label': self.warning_label_base_link,
+                'border': self.border_base_link,
+                'widget': self.entry_base_link,
+                'var': self.var_base_link
+            }
+            self.config_fields['last_link'] = {
+                'display_frame': 'home_frame',
+                'warning_label': self.warning_label_last_link,
+                'border': self.border_last_link,
+                'widget': self.entry_last_link,
+                'var': self.var_last_link
+            }
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['home_frame'] = {
+                'frame': self.home_frame,
+                'widget_to_focus': ''
+            }
+        build_home_frame()
+
+        def build_config_frame():
+            # Variáveis.
+            self.config_frame = tk.Frame(self.window)
+            self.var_manga_name = tk.StringVar()
+            self.var_final_dir = tk.StringVar()
+            self.var_download_dir = tk.StringVar()
+            self.var_files_dir = tk.StringVar()
+            self.var_chapter_number_by = tk.StringVar()
+            self.var_chapter_number_value = tk.StringVar()
+            self.is_select = tk.BooleanVar()
+            self.var_select_read_mode_by = tk.StringVar()
+            self.var_select_read_mode_value = tk.StringVar()
+            self.var_visible_text = tk.StringVar()
+            self.var_frames_location_by = tk.StringVar()
+            self.var_frames_location_value = tk.StringVar()
+            self.var_imgs_location_by = tk.StringVar()
+            self.var_imgs_location_value = tk.StringVar()
+            self.var_next_page_button_location_by = tk.StringVar()
+            self.var_next_page_button_location_value = tk.StringVar()
+
+            # Elementos.
+            # Linha 0.
+            self.label_config = tk.Label(self.config_frame, text='Configurações', font=10)
+            self.label_config.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.label_manga_name = tk.Label(self.config_frame, text='Nome do Mangá:', anchor='e')
+            self.label_manga_name.grid(row=1, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_manga_name = tk.Frame(self.config_frame)
+            self.frame_manga_name.columnconfigure(0, weight=1)
+            self.frame_manga_name.grid(row=1, column=1, sticky='we')
+            self.warning_label_manga_name = tk.Label(self.frame_manga_name, text='', fg='red')
+            self.border_manga_name = tk.Frame(self.frame_manga_name)
+            self.border_manga_name.columnconfigure(0, weight=1)
+            self.border_manga_name.grid(row=1, column=0, sticky='nswe')
+            self.entry_manga_name = tk.Entry(self.border_manga_name, textvariable=self.var_manga_name)
+            self.entry_manga_name.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 4.
+            self.label_final_dir = tk.Label(self.config_frame, text='Pasta Final:', anchor='e')
+            self.label_final_dir.grid(row=4, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_final_dir = tk.Frame(self.config_frame)
+            self.frame_final_dir.columnconfigure(0, weight=1)
+            self.frame_final_dir.grid(row=4, column=1, sticky='we')
+            self.warning_label_final_dir = tk.Label(self.frame_final_dir, text='', fg='red')
+            self.border_final_dir = tk.Frame(self.frame_final_dir)
+            self.border_final_dir.columnconfigure(0, weight=1)
+            self.border_final_dir.grid(row=1, column=0, sticky='nswe')
+            self.entry_final_dir = tk.Entry(self.border_final_dir, textvariable=self.var_final_dir)
+            self.entry_final_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.select_dir, 'Selecione pasta de destino dos mangás.', self.var_final_dir)
+            self.button_final_dir = tk.Button(self.config_frame, text='Procurar', command=command)
+            self.button_final_dir.grid(row=4, column=2, padx=self.default_padx, sticky='swe')
+
+            # Linha 5.
+            self.label_download_dir = tk.Label(self.config_frame, text='Pasta de Download:', anchor='e')
+            self.label_download_dir.grid(row=5, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_download_dir = tk.Frame(self.config_frame)
+            self.frame_download_dir.columnconfigure(0, weight=1)
+            self.frame_download_dir.grid(row=5, column=1, sticky='we')
+            self.warning_label_download_dir = tk.Label(self.frame_download_dir, text='', fg='red')
+            self.border_download_dir = tk.Frame(self.frame_download_dir)
+            self.border_download_dir.columnconfigure(0, weight=1)
+            self.border_download_dir.grid(row=1, column=0, sticky='nswe')
+            self.entry_download_dir = tk.Entry(self.border_download_dir, textvariable=self.var_download_dir)
+            self.entry_download_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.select_dir, 'Selecione pasta de download padrão do navegador.', self.var_download_dir)
+            self.button_download_dir = tk.Button(self.config_frame, text='Procurar', command=command)
+            self.button_download_dir.grid(row=5, column=2, padx=self.default_padx, sticky='swe')
+
+            # Linha 6.
+            self.label_files_dir = tk.Label(self.config_frame, text='Pasta de Arquivos:', anchor='e')
+            self.label_files_dir.grid(row=6, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_files_dir = tk.Frame(self.config_frame)
+            self.frame_files_dir.columnconfigure(0, weight=1)
+            self.frame_files_dir.grid(row=6, column=1, sticky='we')
+            self.warning_label_files_dir = tk.Label(self.frame_files_dir, text='', fg='red')
+            self.border_files_dir = tk.Frame(self.frame_files_dir)
+            self.border_files_dir.columnconfigure(0, weight=1)
+            self.border_files_dir.grid(row=1, column=0, sticky='nswe')
+            self.entry_files_dir = tk.Entry(self.border_files_dir, textvariable=self.var_files_dir)
+            self.entry_files_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.select_dir, 'Selecione pasta para manipulação das imagens.', self.var_files_dir)
+            self.button_files_dir = tk.Button(self.config_frame, text='Procurar', command=command)
+            self.button_files_dir.grid(row=6, column=2, padx=self.default_padx, sticky='swe')
+
+            # Linha 7.
+            self.label_chapter_number_by = tk.Label(self.config_frame, text='Identificador de capítulo:', anchor='e')
+            self.label_chapter_number_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_chapter_number_value = tk.Frame(self.config_frame)
+            self.frame_chapter_number_value.columnconfigure(0, weight=1)
+            self.frame_chapter_number_value.grid(row=7, column=1, sticky='we')
+            self.warning_label_chapter_number_value = tk.Label(self.frame_chapter_number_value, text='', fg='red')
+            self.border_chapter_number_value = tk.Frame(self.frame_chapter_number_value)
+            self.border_chapter_number_value.columnconfigure(0, weight=1)
+            self.border_chapter_number_value.grid(row=1, column=0, sticky='nswe')
+            self.entry_chapter_number_value = tk.Entry(self.border_chapter_number_value, textvariable=self.var_chapter_number_value)
+            self.entry_chapter_number_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            self.frame_chapter_number_by = tk.Frame(self.config_frame)
+            self.frame_chapter_number_by.columnconfigure(0, weight=1)
+            self.frame_chapter_number_by.grid(row=7, column=2, sticky='we')
+            self.warning_label_chapter_number_by = tk.Label(self.frame_chapter_number_by, text='', fg='red')
+            self.border_chapter_number_by = tk.Frame(self.frame_chapter_number_by)
+            self.border_chapter_number_by.columnconfigure(0, weight=1)
+            self.border_chapter_number_by.grid(row=1, column=0, sticky='nswe')
+            self.option_menu_chapter_number_by = tk.OptionMenu(
+                self.border_chapter_number_by,  self.var_chapter_number_by,
+                "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+            )
+            self.option_menu_chapter_number_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 8.
+            self.label_select = tk.Label(self.config_frame, text='Identificador é um select:', anchor='e')
+            self.label_select.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
+            self.radio_buttons_frame = tk.Frame(self.config_frame)
+            self.radio_buttons_frame.grid(row=8, column=1, padx=5, pady=1, sticky='nswe')
+            self.no_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.is_select, value=0, text='Não')
+            self.no_radio_button.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
+            self.yes_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.is_select, value=1, text='Sim')
+            self.yes_radio_button.grid(row=0, column=1, padx=5, pady=1, sticky='nswe')
+
+            # Linha 9.
+            self.label_select_read_mode_by = tk.Label(self.config_frame, text='Seletor modo de leitura:', anchor='e')
+            self.label_select_read_mode_by.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_select_read_mode_value = tk.Frame(self.config_frame)
+            self.frame_select_read_mode_value.columnconfigure(0, weight=1)
+            self.frame_select_read_mode_value.grid(row=9, column=1, sticky='we')
+            self.warning_label_select_read_mode_value = tk.Label(self.frame_select_read_mode_value, text='', fg='red')
+            self.border_select_read_mode_value = tk.Frame(self.frame_select_read_mode_value)
+            self.border_select_read_mode_value.columnconfigure(0, weight=1)
+            self.border_select_read_mode_value.grid(row=1, column=0, sticky='nswe')
+            self.entry_select_read_mode_value = tk.Entry(self.border_select_read_mode_value, textvariable=self.var_select_read_mode_value)
+            self.entry_select_read_mode_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            self.frame_select_read_mode_by = tk.Frame(self.config_frame)
+            self.frame_select_read_mode_by.columnconfigure(0, weight=1)
+            self.frame_select_read_mode_by.grid(row=9, column=2, sticky='we')
+            self.warning_label_select_read_mode_by = tk.Label(self.frame_select_read_mode_by, text='', fg='red')
+            self.border_select_read_mode_by = tk.Frame(self.frame_select_read_mode_by)
+            self.border_select_read_mode_by.columnconfigure(0, weight=1)
+            self.border_select_read_mode_by.grid(row=1, column=0, sticky='nswe')
+            self.option_menu_select_read_mode_by = tk.OptionMenu(
+                self.border_select_read_mode_by, self.var_select_read_mode_by,
+                "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+            )
+            self.option_menu_select_read_mode_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 10.
+            self.label_visible_text = tk.Label(self.config_frame, text='Texto da opção:', anchor='e')
+            self.label_visible_text.grid(row=10, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_visible_text = tk.Frame(self.config_frame)
+            self.frame_visible_text.columnconfigure(0, weight=1)
+            self.frame_visible_text.grid(row=10, column=1, sticky='we')
+            self.warning_label_visible_text = tk.Label(self.frame_visible_text, text='', fg='red')
+            self.border_visible_text = tk.Frame(self.frame_visible_text)
+            self.border_visible_text.columnconfigure(0, weight=1)
+            self.border_visible_text.grid(row=1, column=0, sticky='nswe')
+            self.entry_visible_text = tk.Entry(self.border_visible_text, textvariable=self.var_visible_text)
+            self.entry_visible_text.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 11.
+            self.label_frames_location_by = tk.Label(self.config_frame, text='Quadros:', anchor='e')
+            self.label_frames_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_frames_location_value = tk.Frame(self.config_frame)
+            self.frame_frames_location_value.columnconfigure(0, weight=1)
+            self.frame_frames_location_value.grid(row=11, column=1, sticky='we')
+            self.warning_label_frames_location_value = tk.Label(self.frame_frames_location_value, text='', fg='red')
+            self.border_frames_location_value = tk.Frame(self.frame_frames_location_value)
+            self.border_frames_location_value.columnconfigure(0, weight=1)
+            self.border_frames_location_value.grid(row=1, column=0, sticky='nswe')
+            self.entry_frames_location_value = tk.Entry(self.border_frames_location_value, textvariable=self.var_frames_location_value)
+            self.entry_frames_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            self.frame_frames_location_by = tk.Frame(self.config_frame)
+            self.frame_frames_location_by.columnconfigure(0, weight=1)
+            self.frame_frames_location_by.grid(row=11, column=2, sticky='we')
+            self.warning_label_frames_location_by = tk.Label(self.frame_frames_location_by, text='', fg='red')
+            self.border_frames_location_by = tk.Frame(self.frame_frames_location_by)
+            self.border_frames_location_by.columnconfigure(0, weight=1)
+            self.border_frames_location_by.grid(row=1, column=0, sticky='nswe')
+            self.option_menu_frames_location_by = tk.OptionMenu(
+                self.border_frames_location_by,  self.var_frames_location_by,
+                "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+            )
+            self.option_menu_frames_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 12.
+            self.label_imgs_location_by = tk.Label(self.config_frame, text='Imagens:', anchor='e')
+            self.label_imgs_location_by.grid(row=12, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_imgs_location_value = tk.Frame(self.config_frame)
+            self.frame_imgs_location_value.columnconfigure(0, weight=1)
+            self.frame_imgs_location_value.grid(row=12, column=1, sticky='we')
+            self.warning_label_imgs_location_value = tk.Label(self.frame_imgs_location_value, text='', fg='red')
+            self.border_imgs_location_value = tk.Frame(self.frame_imgs_location_value)
+            self.border_imgs_location_value.columnconfigure(0, weight=1)
+            self.border_imgs_location_value.grid(row=1, column=0, sticky='nswe')
+            self.entry_imgs_location_value = tk.Entry(self.border_imgs_location_value, textvariable=self.var_imgs_location_value)
+            self.entry_imgs_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            self.frame_imgs_location_by = tk.Frame(self.config_frame)
+            self.frame_imgs_location_by.columnconfigure(0, weight=1)
+            self.frame_imgs_location_by.grid(row=12, column=2, sticky='we')
+            self.warning_label_imgs_location_by = tk.Label(self.frame_imgs_location_by, text='', fg='red')
+            self.border_imgs_location_by = tk.Frame(self.frame_imgs_location_by)
+            self.border_imgs_location_by.columnconfigure(0, weight=1)
+            self.border_imgs_location_by.grid(row=1, column=0, sticky='nswe')
+            self.option_menu_imgs_location_by = tk.OptionMenu(
+                self.border_imgs_location_by,  self.var_imgs_location_by,
+                "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector",
+            )
+            self.option_menu_imgs_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 13.
+            self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Botão de Avançar:', anchor='e')
+            self.label_next_page_button_location_by.grid(row=13, column=0, padx=5, pady=1, sticky='nswe')
+            self.frame_next_page_button_location_value = tk.Frame(self.config_frame)
+            self.frame_next_page_button_location_value.columnconfigure(0, weight=1)
+            self.frame_next_page_button_location_value.grid(row=13, column=1, sticky='we')
+            self.warning_label_next_page_button_location_value = tk.Label(
+                self.frame_next_page_button_location_value, text='', fg='red'
+            )
+            self.border_next_page_button_location_value = tk.Frame(self.frame_next_page_button_location_value)
+            self.border_next_page_button_location_value.columnconfigure(0, weight=1)
+            self.border_next_page_button_location_value.grid(row=1, column=0, sticky='nswe')
+            self.entry_next_page_button_location_value = tk.Entry(
+                self.border_next_page_button_location_value, textvariable=self.var_next_page_button_location_value
+            )
+            self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            self.frame_next_page_button_location_by = tk.Frame(self.config_frame)
+            self.frame_next_page_button_location_by.columnconfigure(0, weight=1)
+            self.frame_next_page_button_location_by.grid(row=13, column=2, sticky='we')
+            self.warning_label_next_page_button_location_by = tk.Label(self.frame_next_page_button_location_by, text='', fg='red')
+            self.border_next_page_button_location_by = tk.Frame(self.frame_next_page_button_location_by)
+            self.border_next_page_button_location_by.columnconfigure(0, weight=1)
+            self.border_next_page_button_location_by.grid(row=1, column=0, sticky='nswe')
+            self.option_menu_next_page_button_location_by = tk.OptionMenu(
+                self.border_next_page_button_location_by,  self.var_next_page_button_location_by,
+                "Selecione", "id", "name", "xpath", "link text", "partial link text", "tag name", "class name", "css selector"
+            )
+            self.option_menu_next_page_button_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Linha 14.
+            self.frame_info_frame_buttons = tk.Frame(self.config_frame)
+            self.frame_info_frame_buttons.grid(row=14, column=1, padx=2)
+            self.frame_info_frame_buttons.columnconfigure(0, weight=1)
+            self.info_frame_space = tk.Label(self.frame_info_frame_buttons, text='')
+            self.info_frame_space.grid(row=0, column=0)
+            command = partial(self.ask_confirmation_to_reset)
+            self.button_reset = tk.Button(self.frame_info_frame_buttons, text='Configuração Padrão', command=command)
+            self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
+            command = partial(self.save_and_go_back)
+            self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
+            self.button_back.grid(row=14, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
+
+            # Adiciona a lista de widgets existentes.
+            self.config_fields['manga_name'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_manga_name,
+                'border': self.border_manga_name,
+                'widget': self.entry_manga_name,
+                'var': self.var_manga_name
+            }
+            self.config_fields['final_dir'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_final_dir,
+                'border': self.border_final_dir,
+                'widget': self.entry_final_dir,
+                'var': self.var_final_dir
+            }
+            self.config_fields['download_dir'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_download_dir,
+                'border': self.border_download_dir,
+                'widget': self.entry_download_dir,
+                'var': self.var_download_dir
+            }
+            self.config_fields['files_dir'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_files_dir,
+                'border': self.border_files_dir,
+                'widget': self.entry_files_dir,
+                'var': self.var_files_dir
+            }
+            self.config_fields['chapter_number_by'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_chapter_number_by,
+                'border': self.border_chapter_number_by,
+                'widget': self.option_menu_chapter_number_by,
+                'var': self.var_chapter_number_by
+            }
+            self.config_fields['chapter_number_value'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_chapter_number_value,
+                'border': self.border_chapter_number_value,
+                'widget': self.entry_chapter_number_value,
+                'var': self.var_chapter_number_value
+            }
+            self.config_fields['is_select'] = {
+                'display_frame': 'config_frame',
+                'warning_label': '',
+                'border': '',
+                'widget': self.yes_radio_button,
+                'var': self.is_select
+            }
+            self.config_fields['select_read_mode_by'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_select_read_mode_by,
+                'border': self.border_select_read_mode_by,
+                'widget': self.option_menu_select_read_mode_by,
+                'var': self.var_select_read_mode_by
+            }
+            self.config_fields['select_read_mode_value'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_select_read_mode_value,
+                'border': self.border_select_read_mode_value,
+                'widget': self.entry_select_read_mode_value,
+                'var': self.var_select_read_mode_value
+            }
+            self.config_fields['visible_text'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_visible_text,
+                'border': self.border_visible_text,
+                'widget': self.entry_visible_text,
+                'var': self.var_visible_text
+            }
+            self.config_fields['frames_location_by'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_frames_location_by,
+                'border': self.border_frames_location_by,
+                'widget': self.option_menu_frames_location_by,
+                'var': self.var_frames_location_by
+            }
+            self.config_fields['frames_location_value'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_frames_location_value,
+                'border': self.border_frames_location_value,
+                'widget': self.entry_frames_location_value,
+                'var': self.var_frames_location_value
+            }
+            self.config_fields['imgs_location_by'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_imgs_location_by,
+                'border': self.border_imgs_location_by,
+                'widget': self.option_menu_imgs_location_by,
+                'var': self.var_imgs_location_by
+            }
+            self.config_fields['imgs_location_value'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_imgs_location_value,
+                'border': self.border_imgs_location_value,
+                'widget': self.entry_imgs_location_value,
+                'var': self.var_imgs_location_value
+            }
+            self.config_fields['next_page_button_location_by'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_next_page_button_location_by,
+                'border': self.border_next_page_button_location_by,
+                'widget': self.option_menu_next_page_button_location_by,
+                'var': self.var_next_page_button_location_by
+            }
+            self.config_fields['next_page_button_location_value'] = {
+                'display_frame': 'config_frame',
+                'warning_label': self.warning_label_next_page_button_location_value,
+                'border': self.border_next_page_button_location_value,
+                'widget': self.entry_next_page_button_location_value,
+                'var': self.var_next_page_button_location_value
+            }
+
+            # Adiciona às janelas existentes.
+            self.app_frames['config_frame'] = {
+                'frame': self.config_frame,
+                'widget_to_focus': ''
+            }
+        build_config_frame()
+
+        def build_confirmation_frame():
+            # Variáveis.
+            self.confirmation_frame = tk.Frame(self.window)
+            self.confirmation_frame_max_char_per_line = 50
+
+            # Elementos.
+            # Linha 0.
+            self.label_confirmation_title = tk.Label(self.confirmation_frame, font=10)
+            self.label_confirmation_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.label_confirmation_description = tk.Label(self.confirmation_frame, anchor='w')
+            self.label_confirmation_description.grid(row=1, column=0, columnspan=3, padx=5, pady=1, sticky='nswe')
+
+            # Linha 2.
+            self.frame_confirmation_frame_buttons = tk.Frame(self.confirmation_frame)
+            self.frame_confirmation_frame_buttons.grid(row=2, column=0, columnspan=3)
+            self.frame_confirmation_frame_buttons.columnconfigure(0, weight=1)
+            self.info_frame_space = tk.Label(self.frame_confirmation_frame_buttons, text='')
+            self.info_frame_space.grid(row=0, column=0)
+            command = partial(self.cancel)
+            self.cancelation_button = tk.Button(self.frame_confirmation_frame_buttons, text='Cancelar', command=command)
+            self.cancelation_button.grid(row=0, column=1, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+            command = partial(self.execute_awaiting_function)
+            self.confirmation_button = tk.Button(self.frame_confirmation_frame_buttons, text='Confirmar', command=command)
+            self.confirmation_button.grid(row=0, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['confirmation_frame'] = {
+                'frame': self.confirmation_frame,
+                'widget_to_focus': ''
+            }
+        build_confirmation_frame()
+
+        def build_info_frame():
+            # Variáveis.
+            self.info_frame = tk.Frame(self.window)
+            self.num_info_lines = 7
+            self.info_frame_max_char_per_line = 50
+            self.dynamic_button_action = 'go_home'
+            self.dynamic_button_text = 'Voltar'
+
+            # Elementos.
+            # Linha 0.
+            self.label_info_title = tk.Label(self.info_frame, font=10)
+            self.label_info_title.grid(row=0, column=0, columnspan=3, padx=5, pady=5, sticky='nswe')
+
+            # Linha 1.
+            self.scrolled_textbox = scrolledtext.ScrolledText(
+                self.info_frame, width=self.info_frame_max_char_per_line, height=self.num_info_lines, cursor='arrow'
+            )
+            self.scrolled_textbox.grid(row=1, column=0, columnspan=3, padx=5, pady=self.default_pady, sticky='nswe')
+
+            # Linha 2.
+            command = partial(self.execute_dynamic_button_action)
+            self.dynamic_button = tk.Button(self.info_frame, text=self.dynamic_button_text, command=command)
+            self.dynamic_button.grid(row=2, column=2, padx=self.default_padx, pady=self.default_pady, sticky='nswe')
+
+            # Adiciona à lista de janelas existentes.
+            self.app_frames['info_frame'] = {
+                'frame': self.info_frame,
+                'widget_to_focus': ''
+            }
+        build_info_frame()
+
         # Exibe tela inicial
-        self.switch_frame('menu_frame')
+        self.switch_frame(Frames.MENU_FRAME)
 
     # ==================================================================================================================
     # Funções gerais.
@@ -1016,9 +1038,10 @@ class GUI:
         # Varre os campos de configuração.
         for field in self.config_fields.values():
             # Remove destaque do campo.
-            field['border']['bg'] = 'white'
-            field['warning_label']['text'] = ''
-            field['warning_label'].grid_forget()
+            if field['border'] and field['warning_label']:
+                field['border']['bg'] = 'white'
+                field['warning_label']['text'] = ''
+                field['warning_label'].grid_forget()
 
     def update_all_fields(self):
         """
@@ -1058,7 +1081,7 @@ class GUI:
         """
         self.awaiting_function = awaiting_function
         self.display_selection_title(title)
-        self.switch_frame('selection_frame')
+        self.switch_frame(Frames.SELECTION_FRAME)
 
     # ==================================================================================================================
     # Funções do MenuFrame.
@@ -1104,7 +1127,7 @@ class GUI:
         self.config_ma.load_config_set(self.current_config_set)
 
         # Exibe home.
-        self.switch_frame('home_frame')
+        self.switch_frame(Frames.HOME_FRAME)
 
     # ==================================================================================================================
     # Funções do SelectionFrame.
@@ -1176,14 +1199,14 @@ class GUI:
         self.selected_config_set = ''
 
         # Exibe home.
-        self.switch_frame('home_frame')
+        self.switch_frame(Frames.HOME_FRAME)
 
     def ask_confirmation_to_delete(self):
         """
             Pede confirmação antes da exclusão.
         """
         self.awaiting_function = 'continue_to_delete'
-        self.switch_frame('confirmation_frame')
+        self.switch_frame(Frames.CONFIRMATION_FRAME)
         self.display_confirmation_info(
             'Exclusão do perfil: {}.'.format(self.selected_config_set),
             ['O perfil será excluído permanentemente.', 'Deseja continuar?']
@@ -1212,7 +1235,7 @@ class GUI:
         self.selected_config_set = ''
 
         # Retorna para a criação.
-        self.switch_frame('rename_frame')
+        self.switch_frame(Frames.RENAME_FRAME)
 
     # ==================================================================================================================
     # Funções do CreationFrame.
@@ -1259,7 +1282,7 @@ class GUI:
         self.current_config_set = name
 
         # Exibe a home.
-        self.switch_frame('home_frame')
+        self.switch_frame(Frames.HOME_FRAME)
 
     def manage_copy_button_state(self):
         state = 'disabled'
@@ -1346,11 +1369,11 @@ class GUI:
             deletion_status = ['Não há capítulos para serem excluidos.']
 
             # Exibe o frame de informações com o resultado da exclusão.
-            self.switch_frame('info_frame')
+            self.switch_frame(Frames.INFO_FRAME)
             self.display_info(deletion_status, 'Exclusão')
         else:
             self.awaiting_function = 'delete_chapters'
-            self.switch_frame('confirmation_frame')
+            self.switch_frame(Frames.CONFIRMATION_FRAME)
             self.display_confirmation_info(
                 'Exclusão de capítulos', ['Os arquivos serão excluídos permanentemente.', 'Deseja continuar?']
             )
@@ -1381,7 +1404,7 @@ class GUI:
         self.chapters_files = []
 
         # Exibe o frame de informações com o resultado da exclusão.
-        self.switch_frame('info_frame')
+        self.switch_frame(Frames.INFO_FRAME)
         self.display_info(deletion_status, 'Exclusão')
 
     def kill_secondary_process(self):
@@ -1423,6 +1446,12 @@ class GUI:
         if not self.config_ma.config_list['manga_name']:
             configs_and_warnings['manga_name'] = 'Informe o nome do mangá.'
 
+        # Quantidade de capítulos a serem baixados.
+        if not self.config_ma.config_list['num_chapters']:
+            configs_and_warnings['num_chapters'] = 'Informe a quantidade a ser baixada.'
+        elif not self.config_ma.config_list['num_chapters'].replace('.', '').isnumeric():
+            configs_and_warnings['num_chapters'] = 'Informe apenas números.'
+
         # Link do capítulo inicial à ser baixado.
         if not self.config_ma.config_list['base_link']:
             configs_and_warnings['base_link'] = 'Informe o link do capítulo inicial.'
@@ -1432,28 +1461,6 @@ class GUI:
             configs_and_warnings['final_dir'] = 'Informe a pasta de destino.'
         elif not self.system_ma.path_exist(self.config_ma.config_list['final_dir']):
             configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
-
-        # Capitulo inicial e final.
-        initial_chapter = self.config_ma.config_list['initial_chapter']
-        final_chapter = self.config_ma.config_list['final_chapter']
-        are_numerical = True
-        if not initial_chapter:
-            configs_and_warnings['initial_chapter'] = 'Informe o número do capítulo.'
-        else:
-            if not initial_chapter.replace('.', '').isnumeric():
-                are_numerical = False
-                configs_and_warnings['initial_chapter'] = 'Informe apenas números.'
-
-        if not final_chapter:
-            configs_and_warnings['final_chapter'] = 'Informe o número do capítulo.'
-        else:
-            if not final_chapter.replace('.', '').isnumeric():
-                are_numerical = False
-                configs_and_warnings['final_chapter'] = 'Informe apenas números.'
-
-        if initial_chapter and final_chapter and are_numerical:
-            if initial_chapter > final_chapter:
-                configs_and_warnings['initial_chapter'] = 'Deve ser menor ou igual ao final.'
 
         # Pasta de download do navegador.
         if not self.config_ma.config_list['download_dir']:
@@ -1502,13 +1509,14 @@ class GUI:
         self.browser_handle = 0
 
         # Instancia classe necessária.
-        download_ma = DownloadManager(self.config_ma)
+        communication_options = CommunicationOptions()
+        download_ma = DownloadManager(self.config_ma, communication_options)
 
         # Muda função do botão dinâmico para cancelar.
         self.set_dynamic_button_action('cancel')
 
         # Exibe frame de informações.
-        self.switch_frame('info_frame')
+        self.switch_frame(Frames.INFO_FRAME)
 
         self.download_process = Process(target=download_ma.download, args=(self.queue,))
 
@@ -1536,24 +1544,24 @@ class GUI:
                 param2 = function[2]
 
             match func_name:
-                case 'save_browser_handle':
+                case CommunicationOptions.SAVE_BROWSER_HANDLE:
                     self.save_browser_handle(param1)
-                case 'save_last_link':
+                case CommunicationOptions.SAVE_LAST_LINK:
                     self.save_last_link(param1)
-                case 'display_info':
+                case CommunicationOptions.DISPLAY_INFO:
                     if param2:
                         self.display_info(param1, param2)
                     else:
                         self.display_info(param1)
-                case 'update_last_lines':
+                case CommunicationOptions.UPDATE_LAST_LINES:
                     if param2:
                         self.update_last_lines(param1, param2)
                     else:
                         self.update_last_lines(param1)
-                case 'kill_secondary_process':
+                case CommunicationOptions.KILL_SECONDARY_PROCESS:
                     self.kill_secondary_process()
                     break
-                case 'end':
+                case CommunicationOptions.END:
                     break
 
     def save_and_go_back(self):
@@ -1590,7 +1598,7 @@ class GUI:
             Pede confirmação antes da exclusão.
         """
         self.awaiting_function = 'reset_config_set'
-        self.switch_frame('confirmation_frame')
+        self.switch_frame(Frames.CONFIRMATION_FRAME)
         self.display_confirmation_info(
             'Reconfiguração',
             ['O perfil receberá as configurações padrões.', 'Deseja continuar?']
@@ -1648,7 +1656,7 @@ class GUI:
         """
         self.set_dynamic_button_action('go_back')
         self.display_info(message, title)
-        self.switch_frame('info_frame')
+        self.switch_frame(Frames.INFO_FRAME)
 
     def execute_dynamic_button_action(self):
         """

@@ -1,21 +1,21 @@
-last_config_set_loaded=Berserk
-<Berserk
-manga_name=Berserk
-base_link=https://www.brmangas.net/ler/berserk-189-online/
-last_link=https://www.brmangas.net/ler/berserk-193-online/
+last_config_set_loaded=Martial Peak
+<Martial Peak
+manga_name=Martial Peak
+base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
+last_link=
 num_chapters=1
-chapter_number_by=Selecione
-chapter_number_value=
-select=False
-select_read_mode_by=id
-select_read_mode_value=modo_leitura
-visible_text=P�ginas abertas
-frames_location_by=id
-frames_location_value=images_all
+chapter_number_by=id
+chapter_number_value=chapter-heading
+is_select=0
+select_read_mode_by=Selecione
+select_read_mode_value=
+visible_text=
+frames_location_by=class name
+frames_location_value=chapter-video-frame
 imgs_location_by=tag name
 imgs_location_value=img
-next_page_button_location_by=link text
-next_page_button_location_value=Pr�ximo cap�tulo
+next_page_button_location_by=class name
+next_page_button_location_value=next_page
 download_dir=C:\Users\Henrique\Downloads
 files_dir=C:\Users\Henrique\Desktop\. Python\MADO\files
 final_dir=C:\Users\Henrique\Desktop\Excluir
