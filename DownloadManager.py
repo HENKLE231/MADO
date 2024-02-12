@@ -11,6 +11,10 @@ class DownloadManager:
         self.manga_name = config_ma.config_list['manga_name']
         self.next_page_link = config_ma.config_list['base_link']
         self.num_chapters = config_ma.config_list['num_chapters']
+        try:
+            self.num_chapters = int(self.num_chapters)
+        except ValueError as error:
+            self.num_chapters = 0
         self.download_dir = config_ma.config_list['download_dir']
         self.files_dir = config_ma.config_list['files_dir']
         self.final_dir = config_ma.config_list['final_dir']
@@ -112,7 +116,7 @@ class DownloadManager:
 
             # Obtem o número do capítulo
             try:
-                current_chapter = selenium_ma.get_current_chapter(self.select, self.chapter_number_by, self.chapter_number_value)
+                current_chapter = selenium_ma.get_current_chapter(self.is_select, self.chapter_number_by, self.chapter_number_value)
             except Exception as error:
                 error = str(error)
                 if 'Unable to locate element' in error:

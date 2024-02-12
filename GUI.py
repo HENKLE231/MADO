@@ -47,9 +47,6 @@ class GUI:
             self.bread_crumbs = []
             self.app_frames = {}
             self.config_fields = {}
-            self.var_chapter_number_by = tk.StringVar()
-            self.var_chapter_number_value = tk.StringVar()
-            self.var_select = tk.BooleanVar()
             self.configs_for_download = [
                 'manga_name',
                 'num_chapters',
@@ -60,7 +57,7 @@ class GUI:
                 'files_dir',
                 'chapter_number_by',
                 'chapter_number_value',
-                'is_select'
+                'is_select',
                 'select_read_mode_by',
                 'select_read_mode_value',
                 'visible_text',
@@ -91,7 +88,7 @@ class GUI:
             # Elementos.
             # Linha 0.
             self.label_menu_title = tk.Label(self.menu_frame, text='Menu', font=10)
-            self.label_menu_title.grid(row=0, column=0, padx=50, pady=5, sticky='nswe')
+            self.label_menu_title.grid(row=0, column=0, padx=80, pady=5, sticky='nswe')
 
             # Linha 1.
             command = partial(self.load_last_config_set_loaded)
@@ -429,7 +426,7 @@ class GUI:
             self.var_files_dir = tk.StringVar()
             self.var_chapter_number_by = tk.StringVar()
             self.var_chapter_number_value = tk.StringVar()
-            self.is_select = tk.BooleanVar()
+            self.var_is_select = tk.BooleanVar()
             self.var_select_read_mode_by = tk.StringVar()
             self.var_select_read_mode_value = tk.StringVar()
             self.var_visible_text = tk.StringVar()
@@ -536,9 +533,9 @@ class GUI:
             self.label_select.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
             self.radio_buttons_frame = tk.Frame(self.config_frame)
             self.radio_buttons_frame.grid(row=8, column=1, padx=5, pady=1, sticky='nswe')
-            self.no_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.is_select, value=0, text='Não')
+            self.no_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.var_is_select, value=0, text='Não')
             self.no_radio_button.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
-            self.yes_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.is_select, value=1, text='Sim')
+            self.yes_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.var_is_select, value=1, text='Sim')
             self.yes_radio_button.grid(row=0, column=1, padx=5, pady=1, sticky='nswe')
 
             # Linha 9.
@@ -719,7 +716,7 @@ class GUI:
                 'warning_label': '',
                 'border': '',
                 'widget': self.yes_radio_button,
-                'var': self.is_select
+                'var': self.var_is_select
             }
             self.config_fields['select_read_mode_by'] = {
                 'display_frame': 'config_frame',
@@ -894,14 +891,14 @@ class GUI:
             self.app_frames[current_frame]['frame'].grid_forget()
 
         # Define frames que só podem voltar para o menu.
-        frames_that_can_only_go_back_to_the_menu = [
+        frames_that_only_return_to_the_menu = [
             'menu_frame',
             'home_frame',
             'creation_frame',
         ]
 
         # Configura retorno para o menu.
-        if next_frame in frames_that_can_only_go_back_to_the_menu:
+        if next_frame in frames_that_only_return_to_the_menu:
             self.bread_crumbs = ['menu_frame']
 
         # Se não for o menu_frame adiciona.
@@ -911,7 +908,7 @@ class GUI:
         # Exibe o frame requerido.
         self.app_frames[next_frame]['frame'].grid()
 
-        # Seleciona widget
+        # Foca no widget
         widget_to_focus = self.app_frames[next_frame]['widget_to_focus']
 
         if widget_to_focus:
@@ -923,6 +920,8 @@ class GUI:
 
             # Move o foco para o final do campo.
             widget_to_focus.icursor(info_length)
+        else:
+            self.window.focus_set()
 
     def go_back(self):
         """
@@ -964,7 +963,10 @@ class GUI:
         for config_name, widgets in self.config_fields.items():
             if config_name in self.configs_for_download:
                 # Pega o valor.
-                value = widgets['var'].get().strip()
+                value = widgets['var'].get()
+
+                # Verificar se é String para aplicar o corte de espaços
+                value = value.strip() if type(value) is str else value
 
                 # Salva na instância.
                 self.config_ma.edit_config(config_name, value)
@@ -1449,7 +1451,7 @@ class GUI:
         # Quantidade de capítulos a serem baixados.
         if not self.config_ma.config_list['num_chapters']:
             configs_and_warnings['num_chapters'] = 'Informe a quantidade a ser baixada.'
-        elif not self.config_ma.config_list['num_chapters'].replace('.', '').isnumeric():
+        elif not self.config_ma.config_list['num_chapters'].isnumeric():
             configs_and_warnings['num_chapters'] = 'Informe apenas números.'
 
         # Link do capítulo inicial à ser baixado.
@@ -1462,7 +1464,7 @@ class GUI:
         elif not self.system_ma.path_exist(self.config_ma.config_list['final_dir']):
             configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
 
-        # Pasta de download do navegador.
+        # Pasta de padrão de download do navegador.
         if not self.config_ma.config_list['download_dir']:
             configs_and_warnings['download_dir'] = 'Informe a pasta de download do chrome.'
         elif not self.system_ma.path_exist(self.config_ma.config_list['download_dir']):

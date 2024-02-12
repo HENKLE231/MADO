@@ -2,11 +2,11 @@ last_config_set_loaded=Martial Peak
 <Martial Peak
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
-last_link=
-num_chapters=1
+last_link=https://manhuaplus.com/manga/martial-peak/chapter-2519/
+num_chapters=5
 chapter_number_by=id
 chapter_number_value=chapter-heading
-is_select=0
+is_select=False
 select_read_mode_by=Selecione
 select_read_mode_value=
 visible_text=
