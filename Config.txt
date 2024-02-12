@@ -1,4 +1,4 @@
-last_config_set_loaded=Martial Peak
+last_config_set_loaded=
 <Martial Peak
 manga_name=Martial Peak
 base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/

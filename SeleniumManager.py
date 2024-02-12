@@ -60,29 +60,27 @@ class SeleniumManager:
         """
         self.nav.get(link)
 
-    def select_read_mode_open_pages(self, select_read_mode_by, select_read_mode_value, visible_text):
+    def select_read_mode_open_pages(self, select_read_mode_location, visible_text):
         """
-            :param select_read_mode_by: (String) Pelo que será procurado.
-            :param select_read_mode_value: (String) Valor a ser procurado.
+            :param select_read_mode_location: (Dict de Strings) Pelo que procurará e o valor.
             :param visible_text: (String) Texto exibido na opção desejada.
             Seleciona uma opção do seletor.
         """
         # Seleciona o seletor.
-        select = Select(self.nav.find_element(select_read_mode_by, select_read_mode_value))
+        select = Select(self.nav.find_element(select_read_mode_location['by'], select_read_mode_location['value']))
 
         # Seleciona a opção desejada.
         select.select_by_visible_text(visible_text)
 
-    def get_current_chapter(self, select, current_chapter_by, current_chapter_value):
+    def get_current_chapter(self, is_select, chapter_number_location):
         """
-            :param select: (Boolean) Se o elemento é um seletor.
-            :param current_chapter_by: (String) Pelo que será procurado.
-            :param current_chapter_value: (String) Valor a ser procurado.
-            :return: Numero do capítulo atual.
+            :param is_select: (Boolean) Se o elemento é um seletor.
+            :param chapter_number_location: (Dict de Strings) Pelo que procurará e o valor.
+            :return: (String) Numero do capítulo atual.
         """
         # Encontra o texto.
-        element = self.nav.find_element(current_chapter_by, current_chapter_value)
-        if select:
+        element = self.nav.find_element(chapter_number_location['by'], chapter_number_location['value'])
+        if is_select:
             element = element.find_element('xpath', '//*[@selected="selected]')
 
         chapter_text = element.text
@@ -106,7 +104,7 @@ class SeleniumManager:
     def get_imgs_src(self, manga_name, chapter, frames_location, imgs_location):
         """
             :param manga_name: (String) Nome do mangá.
-            :param chapter: (Int) Número do capítulo.
+            :param chapter: (String) Número do capítulo.
             :param frames_location: (Dict de Strings) Pelo que procurará e o valor.
             :param imgs_location: (Dict de Strings) Pelo que procurará e o valor.
             Define os nomes e salva as fontes das imagens.

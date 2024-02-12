@@ -1,4 +1,0 @@
-// Martial Peak
-manga_name=Martial Peak
-base_link=https://manhuaplus.com/manga/martial-peak/chapter-2515/
-initial_chapter=2515

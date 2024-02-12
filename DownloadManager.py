@@ -19,12 +19,12 @@ class DownloadManager:
         self.files_dir = config_ma.config_list['files_dir']
         self.final_dir = config_ma.config_list['final_dir']
         self.is_select = config_ma.config_list['is_select'] == '1'
-        self.chapter_number_by = config_ma.config_list['chapter_number_by']
-        self.chapter_number_value = config_ma.config_list['chapter_number_value']
-        self.select_read_mode_by = config_ma.config_list['select_read_mode_by']
-        self.select_read_mode_value = config_ma.config_list['select_read_mode_value']
         self.visible_text = config_ma.config_list['visible_text']
-        self.chapter_number = {
+        self.select_read_mode_location = {
+            'by': config_ma.config_list['select_read_mode_by'],
+            'value': config_ma.config_list['select_read_mode_value']
+        }
+        self.chapter_number_location = {
             'by': config_ma.config_list['chapter_number_by'],
             'value': config_ma.config_list['chapter_number_value']
         }
@@ -106,7 +106,7 @@ class DownloadManager:
             # Seleciona o modo de leitura com páginas abertas.
             if self.visible_text:
                 try:
-                    selenium_ma.select_read_mode_open_pages(self.select_read_mode_by, self.select_read_mode_value, self.visible_text)
+                    selenium_ma.select_read_mode_open_pages(self.select_read_mode_location, self.visible_text)
                 except Exception as error:
                     error = str(error)
                     if 'Unable to locate element' in error:
@@ -116,7 +116,7 @@ class DownloadManager:
 
             # Obtem o número do capítulo
             try:
-                current_chapter = selenium_ma.get_current_chapter(self.is_select, self.chapter_number_by, self.chapter_number_value)
+                current_chapter = selenium_ma.get_current_chapter(self.is_select, self.chapter_number_location)
             except Exception as error:
                 error = str(error)
                 if 'Unable to locate element' in error:

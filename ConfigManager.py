@@ -296,6 +296,7 @@ class ConfigManager:
 
     def config_set_exist(self, config_set_name):
         """
+            :param config_set_name: (String) Nome do conjunto de configurações.
             :return: (Boolean) Se o Conjunto de configurações existe.
         """
         try:

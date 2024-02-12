@@ -44,6 +44,7 @@ class PDFManager:
     @staticmethod
     def compile_chapters(manga_name, chapter, chapter_files, final_dir):
         """
+            :param manga_name: (String) Nome do mangá.
             :param chapter: (String) Número do capítulo.
             :param chapter_files: (Array de String) Caminho dos arquivos do capítulo.
             :param final_dir: (String) Pasta final para compilação de arquivos.

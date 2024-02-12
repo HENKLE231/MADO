@@ -10,24 +10,8 @@ from SystemManager import SystemManager
 from TextManager import TextManager
 from DownloadManager import DownloadManager
 import time
-
-class Frames:
-    MENU_FRAME = 'menu_frame'
-    SELECTION_FRAME = 'selection_frame'
-    CREATION_FRAME = 'creation_frame'
-    RENAME_FRAME = 'rename_frame'
-    HOME_FRAME = 'home_frame'
-    CONFIG_FRAME = 'config_frame'
-    CONFIRMATION_FRAME = 'confirmation_frame'
-    INFO_FRAME = 'info_frame'
-
-class CommunicationOptions:
-    SAVE_BROWSER_HANDLE = 'save_browser_handle'
-    SAVE_LAST_LINK = 'save_last_link'
-    DISPLAY_INFO = 'display_info'
-    UPDATE_LAST_LINES = 'update_last_lines'
-    KILL_SECONDARY_PROCESS = 'kill_secondary_process'
-    END = 'end'
+from FramesNames import Frames
+from CommunicationOptions import CommunicationOptions
 
 class GUI:
     def __init__(self):
@@ -35,7 +19,6 @@ class GUI:
             # Variáveis.
             self.window = tk.Tk()
             self.title = 'MADO'
-            self.window.title(self.title)
             self.browser_handle = 0
             self.queue = Queue()
             self.download_process = None
@@ -68,7 +51,11 @@ class GUI:
                 'next_page_button_location_by',
                 'next_page_button_location_value'
             ]
-            self.frames = {}
+            self.var_config_set_name = tk.StringVar()
+            self.var_config_set_to_copy = tk.StringVar()
+
+            # Define título da janela
+            self.window.title(self.title)
 
             # Instancia classe de configuração.
             self.config_ma = ConfigManager()
@@ -133,8 +120,6 @@ class GUI:
         def build_selection_frame():
             # Variáveis.
             self.selection_frame = tk.Frame(self.window)
-            self.var_config_set_name = tk.StringVar()
-            self.var_config_set_to_copy = tk.StringVar()
 
             # Elementos.
             # Linha 0.
@@ -177,8 +162,6 @@ class GUI:
         def build_creation_frame():
             # Variáveis.
             self.creation_frame = tk.Frame(self.window)
-            self.var_config_set_name = tk.StringVar()
-            self.var_config_set_to_copy = tk.StringVar()
 
             # Elementos.
             # Linha 0.
@@ -312,7 +295,7 @@ class GUI:
         def build_home_frame():
             # Variáveis.
             self.home_frame = tk.Frame(self.window)
-            self.var_num_chapters = tk.StringVar()
+            self.var_num_chapters = tk.IntVar()
             self.var_final_chapter = tk.StringVar()
             self.var_base_link = tk.StringVar()
             self.var_last_link = tk.StringVar()
@@ -861,6 +844,8 @@ class GUI:
     # Funções gerais.
     def switch_frame(self, next_frame, current_frame=None):
         """
+            :param next_frame: (String) Nome do frame a ser exibido.
+            :param current_frame: (String) Nome do frame exibido.
             Exibe o frame requerido.
         """
         # Verifica se há exibição de frame.
@@ -990,7 +975,7 @@ class GUI:
 
     def save_browser_handle(self, handle):
         """
-            :param handle: (String) identificador da janela do navegador.
+            :param handle: (Int) identificador da janela do navegador.
             Salva o identificador do navegador.
         """
         self.browser_handle = handle
@@ -1079,6 +1064,8 @@ class GUI:
 
     def open_selection_frame(self, awaiting_function, title):
         """
+            :param awaiting_function: (String) Nome da função em espera.
+            :param title: (String) Título que será exibido no frame.
             Abre o frame de seleção e exibe titulo.
         """
         self.awaiting_function = awaiting_function
@@ -1271,6 +1258,8 @@ class GUI:
 
     def create_config_set(self, name, config_set_to_copy):
         """
+            :param name: (String) Nome do conjunto de configurações a ser criado.
+            :param config_set_to_copy: (String) Nome do conjunto de configurações a ser copiado.
             Cria conjunto de configutações e direciona para a home.
         """
         # Copia conjunto de configurações se requisitado, senão cria outro.
@@ -1325,6 +1314,8 @@ class GUI:
 
     def rename_config_set(self, current_name, new_name):
         """
+            :param current_name: (String) Nome atual.
+            :param new_name: (String) Novo Nome.
             Renomeia conjunto de configutações e volta ao SelectionFrame.
         """
         # Renomeia.
@@ -1652,9 +1643,9 @@ class GUI:
     # Funções do InfoFrame.
     def display_conclusion(self, message, title):
         """
-            :param message: (Array de strings) linhas da mensagem a ser exibida.
-            :param title: (String titulo da mensagem)
-            Exibe conclusão de processo
+            :param message: (Array de Strings) linhas da mensagem a ser exibida.
+            :param title: (String) titulo da mensagem.
+            Exibe conclusão de processo.
         """
         self.set_dynamic_button_action('go_back')
         self.display_info(message, title)
@@ -1673,6 +1664,7 @@ class GUI:
 
     def set_dynamic_button_action(self, action):
         """
+            :param action: (String) Ação que será realizada ao acionar o botão.
             Define função do botão dinâmico.
         """
         if action == 'cancel':
@@ -1758,9 +1750,3 @@ class GUI:
         self.scrolled_textbox['state'] = 'normal'
         self.scrolled_textbox.delete("1.0", tk.END)
         self.scrolled_textbox['state'] = 'disabled'
-
-
-# TODO: RETIRAR
-if __name__ == '__main__':
-    gui = GUI()
-    gui.window.mainloop()
