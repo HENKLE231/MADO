@@ -15,7 +15,6 @@ class DownloadManager:
             self.num_chapters = int(self.num_chapters)
         except ValueError as error:
             self.num_chapters = 0
-        self.download_dir = config_ma.config_list['download_dir']
         self.files_dir = config_ma.config_list['files_dir']
         self.final_dir = config_ma.config_list['final_dir']
         self.is_select = config_ma.config_list['is_select'] == '1'
@@ -70,7 +69,7 @@ class DownloadManager:
         """
 
         # Instancia classes.
-        selenium_ma = SeleniumManager()
+        selenium_ma = SeleniumManager(self.files_dir)
         system_ma = SystemManager()
 
         # Informa o inicio do processo.
@@ -79,10 +78,6 @@ class DownloadManager:
         # Limpa pasta de arquivos desnecessários.
         unnecessary_files = system_ma.find_files(self.files_dir, [''])
         system_ma.delete(unnecessary_files)
-
-        # Limpa os downloads de imagens ainda não transferidos para pasta de edição.
-        unmoved_images = system_ma.find_files(self.download_dir, [f'{self.manga_name}_', '.jpg'], 2)
-        system_ma.delete(unmoved_images)
 
         # Informa o progresso.
         queue.put([self.communication_options.DISPLAY_INFO, ['Obtendo links das imagens.', f'Progresso: {0:.2%}']])
@@ -141,7 +136,7 @@ class DownloadManager:
             if there_is_no_chapter:
                 there_is_no_chapter = False
 
-            if i != self.num_chapters:
+            if i < self.num_chapters - 1:
                 try:
                     self.next_page_link = selenium_ma.get_next_page_link(self.next_page_button_location)
                 except Exception as error:
@@ -204,7 +199,7 @@ class DownloadManager:
                 time.sleep(0.5)
 
             # Informa o progresso.
-            completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.download_dir)
+            completion_percentage = selenium_ma.get_percentage_of_downloaded_files(self.files_dir)
             queue.put([self.communication_options.UPDATE_LAST_LINES, [f'Progresso: {completion_percentage:.2%}']])
 
         # Fecha o navegador.
@@ -213,19 +208,9 @@ class DownloadManager:
         # Salva identificador do navegador.
         queue.put([self.communication_options.SAVE_BROWSER_HANDLE, 0])
 
-        # Informa o progresso.
-        queue.put([self.communication_options.DISPLAY_INFO, ['Iniciando transferência de imagens para pasta de edição.']])
-
-        # Move as imagens para uma pasta adequada.
+        # Obtem o nome e quantidade das imagens.
         patterns = [f'{self.manga_name}_', '.jpg']
-        downloaded_imgs = system_ma.find_files(self.download_dir, patterns)
-        system_ma.move_files(downloaded_imgs, self.files_dir)
         downloaded_imgs = system_ma.find_files(self.files_dir, patterns)
-
-        # Informa o progresso.
-        queue.put([self.communication_options.DISPLAY_INFO, ['Imagens movidas para pasta de edição.']])
-
-        # Obtem o nome das imagens.
         num_imgs = len(downloaded_imgs)
 
         # Informa o progresso.

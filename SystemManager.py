@@ -45,20 +45,6 @@ class SystemManager:
                 os.remove(path)
 
     @staticmethod
-    def move_files(files, new_dir):
-        """
-            :param files: (Array de Strings) Caminhos dos arquivos.
-            :param new_dir: (String) Caminho da pasta de destino.
-            Move arquivos para pasta desejada.
-        """
-        # Varre arquivos.
-        for file in files:
-            file_name = TextManager.get_last_piece_of_path(file)
-            new_file_location = str(Path(r'{}/{}'.format(new_dir, file_name)))
-            # Transfere.
-            os.rename(file, new_file_location)
-
-    @staticmethod
     def path_exist(path):
         """
             :param path: (String) Caminho para uma pasta.

@@ -1,4 +1,3 @@
-import tkinter
 from pathlib import Path
 import tkinter as tk
 from tkinter import scrolledtext, font
@@ -12,6 +11,7 @@ from DownloadManager import DownloadManager
 import time
 from FramesNames import Frames
 from CommunicationOptions import CommunicationOptions
+
 
 class GUI:
     def __init__(self):
@@ -36,7 +36,6 @@ class GUI:
                 'base_link',
                 'last_link',
                 'final_dir',
-                'download_dir',
                 'files_dir',
                 'chapter_number_by',
                 'chapter_number_value',
@@ -295,7 +294,7 @@ class GUI:
         def build_home_frame():
             # Variáveis.
             self.home_frame = tk.Frame(self.window)
-            self.var_num_chapters = tk.IntVar()
+            self.var_num_chapters = tk.StringVar()
             self.var_final_chapter = tk.StringVar()
             self.var_base_link = tk.StringVar()
             self.var_last_link = tk.StringVar()
@@ -405,7 +404,6 @@ class GUI:
             self.config_frame = tk.Frame(self.window)
             self.var_manga_name = tk.StringVar()
             self.var_final_dir = tk.StringVar()
-            self.var_download_dir = tk.StringVar()
             self.var_files_dir = tk.StringVar()
             self.var_chapter_number_by = tk.StringVar()
             self.var_chapter_number_value = tk.StringVar()
@@ -453,29 +451,13 @@ class GUI:
             command = partial(self.select_dir, 'Selecione pasta de destino dos mangás.', self.var_final_dir)
             self.button_final_dir = tk.Button(self.config_frame, text='Procurar', command=command)
             self.button_final_dir.grid(row=4, column=2, padx=self.default_padx, sticky='swe')
-
+            
             # Linha 5.
-            self.label_download_dir = tk.Label(self.config_frame, text='Pasta de Download:', anchor='e')
-            self.label_download_dir.grid(row=5, column=0, padx=5, pady=1, sticky='nswe')
-            self.frame_download_dir = tk.Frame(self.config_frame)
-            self.frame_download_dir.columnconfigure(0, weight=1)
-            self.frame_download_dir.grid(row=5, column=1, sticky='we')
-            self.warning_label_download_dir = tk.Label(self.frame_download_dir, text='', fg='red')
-            self.border_download_dir = tk.Frame(self.frame_download_dir)
-            self.border_download_dir.columnconfigure(0, weight=1)
-            self.border_download_dir.grid(row=1, column=0, sticky='nswe')
-            self.entry_download_dir = tk.Entry(self.border_download_dir, textvariable=self.var_download_dir)
-            self.entry_download_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
-            command = partial(self.select_dir, 'Selecione pasta de download padrão do navegador.', self.var_download_dir)
-            self.button_download_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-            self.button_download_dir.grid(row=5, column=2, padx=self.default_padx, sticky='swe')
-
-            # Linha 6.
             self.label_files_dir = tk.Label(self.config_frame, text='Pasta de Arquivos:', anchor='e')
-            self.label_files_dir.grid(row=6, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_files_dir.grid(row=5, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_files_dir = tk.Frame(self.config_frame)
             self.frame_files_dir.columnconfigure(0, weight=1)
-            self.frame_files_dir.grid(row=6, column=1, sticky='we')
+            self.frame_files_dir.grid(row=5, column=1, sticky='we')
             self.warning_label_files_dir = tk.Label(self.frame_files_dir, text='', fg='red')
             self.border_files_dir = tk.Frame(self.frame_files_dir)
             self.border_files_dir.columnconfigure(0, weight=1)
@@ -484,14 +466,14 @@ class GUI:
             self.entry_files_dir.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             command = partial(self.select_dir, 'Selecione pasta para manipulação das imagens.', self.var_files_dir)
             self.button_files_dir = tk.Button(self.config_frame, text='Procurar', command=command)
-            self.button_files_dir.grid(row=6, column=2, padx=self.default_padx, sticky='swe')
+            self.button_files_dir.grid(row=5, column=2, padx=self.default_padx, sticky='swe')
 
-            # Linha 7.
+            # Linha 6.
             self.label_chapter_number_by = tk.Label(self.config_frame, text='Identificador de capítulo:', anchor='e')
-            self.label_chapter_number_by.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_chapter_number_by.grid(row=6, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_chapter_number_value = tk.Frame(self.config_frame)
             self.frame_chapter_number_value.columnconfigure(0, weight=1)
-            self.frame_chapter_number_value.grid(row=7, column=1, sticky='we')
+            self.frame_chapter_number_value.grid(row=6, column=1, sticky='we')
             self.warning_label_chapter_number_value = tk.Label(self.frame_chapter_number_value, text='', fg='red')
             self.border_chapter_number_value = tk.Frame(self.frame_chapter_number_value)
             self.border_chapter_number_value.columnconfigure(0, weight=1)
@@ -500,7 +482,7 @@ class GUI:
             self.entry_chapter_number_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             self.frame_chapter_number_by = tk.Frame(self.config_frame)
             self.frame_chapter_number_by.columnconfigure(0, weight=1)
-            self.frame_chapter_number_by.grid(row=7, column=2, sticky='we')
+            self.frame_chapter_number_by.grid(row=6, column=2, sticky='we')
             self.warning_label_chapter_number_by = tk.Label(self.frame_chapter_number_by, text='', fg='red')
             self.border_chapter_number_by = tk.Frame(self.frame_chapter_number_by)
             self.border_chapter_number_by.columnconfigure(0, weight=1)
@@ -511,22 +493,22 @@ class GUI:
             )
             self.option_menu_chapter_number_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 8.
+            # Linha 7.
             self.label_select = tk.Label(self.config_frame, text='Identificador é um select:', anchor='e')
-            self.label_select.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_select.grid(row=7, column=0, padx=5, pady=1, sticky='nswe')
             self.radio_buttons_frame = tk.Frame(self.config_frame)
-            self.radio_buttons_frame.grid(row=8, column=1, padx=5, pady=1, sticky='nswe')
+            self.radio_buttons_frame.grid(row=7, column=1, padx=5, pady=1, sticky='nswe')
             self.no_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.var_is_select, value=0, text='Não')
             self.no_radio_button.grid(row=0, column=0, padx=5, pady=1, sticky='nswe')
             self.yes_radio_button = tk.Radiobutton(self.radio_buttons_frame, variable=self.var_is_select, value=1, text='Sim')
             self.yes_radio_button.grid(row=0, column=1, padx=5, pady=1, sticky='nswe')
 
-            # Linha 9.
+            # Linha 8.
             self.label_select_read_mode_by = tk.Label(self.config_frame, text='Seletor modo de leitura:', anchor='e')
-            self.label_select_read_mode_by.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_select_read_mode_by.grid(row=8, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_select_read_mode_value = tk.Frame(self.config_frame)
             self.frame_select_read_mode_value.columnconfigure(0, weight=1)
-            self.frame_select_read_mode_value.grid(row=9, column=1, sticky='we')
+            self.frame_select_read_mode_value.grid(row=8, column=1, sticky='we')
             self.warning_label_select_read_mode_value = tk.Label(self.frame_select_read_mode_value, text='', fg='red')
             self.border_select_read_mode_value = tk.Frame(self.frame_select_read_mode_value)
             self.border_select_read_mode_value.columnconfigure(0, weight=1)
@@ -535,7 +517,7 @@ class GUI:
             self.entry_select_read_mode_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             self.frame_select_read_mode_by = tk.Frame(self.config_frame)
             self.frame_select_read_mode_by.columnconfigure(0, weight=1)
-            self.frame_select_read_mode_by.grid(row=9, column=2, sticky='we')
+            self.frame_select_read_mode_by.grid(row=8, column=2, sticky='we')
             self.warning_label_select_read_mode_by = tk.Label(self.frame_select_read_mode_by, text='', fg='red')
             self.border_select_read_mode_by = tk.Frame(self.frame_select_read_mode_by)
             self.border_select_read_mode_by.columnconfigure(0, weight=1)
@@ -546,12 +528,12 @@ class GUI:
             )
             self.option_menu_select_read_mode_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 10.
+            # Linha 9.
             self.label_visible_text = tk.Label(self.config_frame, text='Texto da opção:', anchor='e')
-            self.label_visible_text.grid(row=10, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_visible_text.grid(row=9, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_visible_text = tk.Frame(self.config_frame)
             self.frame_visible_text.columnconfigure(0, weight=1)
-            self.frame_visible_text.grid(row=10, column=1, sticky='we')
+            self.frame_visible_text.grid(row=9, column=1, sticky='we')
             self.warning_label_visible_text = tk.Label(self.frame_visible_text, text='', fg='red')
             self.border_visible_text = tk.Frame(self.frame_visible_text)
             self.border_visible_text.columnconfigure(0, weight=1)
@@ -559,12 +541,12 @@ class GUI:
             self.entry_visible_text = tk.Entry(self.border_visible_text, textvariable=self.var_visible_text)
             self.entry_visible_text.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 11.
+            # Linha 10.
             self.label_frames_location_by = tk.Label(self.config_frame, text='Quadros:', anchor='e')
-            self.label_frames_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_frames_location_by.grid(row=10, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_frames_location_value = tk.Frame(self.config_frame)
             self.frame_frames_location_value.columnconfigure(0, weight=1)
-            self.frame_frames_location_value.grid(row=11, column=1, sticky='we')
+            self.frame_frames_location_value.grid(row=10, column=1, sticky='we')
             self.warning_label_frames_location_value = tk.Label(self.frame_frames_location_value, text='', fg='red')
             self.border_frames_location_value = tk.Frame(self.frame_frames_location_value)
             self.border_frames_location_value.columnconfigure(0, weight=1)
@@ -573,7 +555,7 @@ class GUI:
             self.entry_frames_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             self.frame_frames_location_by = tk.Frame(self.config_frame)
             self.frame_frames_location_by.columnconfigure(0, weight=1)
-            self.frame_frames_location_by.grid(row=11, column=2, sticky='we')
+            self.frame_frames_location_by.grid(row=10, column=2, sticky='we')
             self.warning_label_frames_location_by = tk.Label(self.frame_frames_location_by, text='', fg='red')
             self.border_frames_location_by = tk.Frame(self.frame_frames_location_by)
             self.border_frames_location_by.columnconfigure(0, weight=1)
@@ -584,12 +566,12 @@ class GUI:
             )
             self.option_menu_frames_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 12.
+            # Linha 11.
             self.label_imgs_location_by = tk.Label(self.config_frame, text='Imagens:', anchor='e')
-            self.label_imgs_location_by.grid(row=12, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_imgs_location_by.grid(row=11, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_imgs_location_value = tk.Frame(self.config_frame)
             self.frame_imgs_location_value.columnconfigure(0, weight=1)
-            self.frame_imgs_location_value.grid(row=12, column=1, sticky='we')
+            self.frame_imgs_location_value.grid(row=11, column=1, sticky='we')
             self.warning_label_imgs_location_value = tk.Label(self.frame_imgs_location_value, text='', fg='red')
             self.border_imgs_location_value = tk.Frame(self.frame_imgs_location_value)
             self.border_imgs_location_value.columnconfigure(0, weight=1)
@@ -598,7 +580,7 @@ class GUI:
             self.entry_imgs_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             self.frame_imgs_location_by = tk.Frame(self.config_frame)
             self.frame_imgs_location_by.columnconfigure(0, weight=1)
-            self.frame_imgs_location_by.grid(row=12, column=2, sticky='we')
+            self.frame_imgs_location_by.grid(row=11, column=2, sticky='we')
             self.warning_label_imgs_location_by = tk.Label(self.frame_imgs_location_by, text='', fg='red')
             self.border_imgs_location_by = tk.Frame(self.frame_imgs_location_by)
             self.border_imgs_location_by.columnconfigure(0, weight=1)
@@ -609,12 +591,12 @@ class GUI:
             )
             self.option_menu_imgs_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 13.
+            # Linha 12.
             self.label_next_page_button_location_by = tk.Label(self.config_frame, text='Botão de Avançar:', anchor='e')
-            self.label_next_page_button_location_by.grid(row=13, column=0, padx=5, pady=1, sticky='nswe')
+            self.label_next_page_button_location_by.grid(row=12, column=0, padx=5, pady=1, sticky='nswe')
             self.frame_next_page_button_location_value = tk.Frame(self.config_frame)
             self.frame_next_page_button_location_value.columnconfigure(0, weight=1)
-            self.frame_next_page_button_location_value.grid(row=13, column=1, sticky='we')
+            self.frame_next_page_button_location_value.grid(row=12, column=1, sticky='we')
             self.warning_label_next_page_button_location_value = tk.Label(
                 self.frame_next_page_button_location_value, text='', fg='red'
             )
@@ -627,7 +609,7 @@ class GUI:
             self.entry_next_page_button_location_value.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
             self.frame_next_page_button_location_by = tk.Frame(self.config_frame)
             self.frame_next_page_button_location_by.columnconfigure(0, weight=1)
-            self.frame_next_page_button_location_by.grid(row=13, column=2, sticky='we')
+            self.frame_next_page_button_location_by.grid(row=12, column=2, sticky='we')
             self.warning_label_next_page_button_location_by = tk.Label(self.frame_next_page_button_location_by, text='', fg='red')
             self.border_next_page_button_location_by = tk.Frame(self.frame_next_page_button_location_by)
             self.border_next_page_button_location_by.columnconfigure(0, weight=1)
@@ -638,9 +620,9 @@ class GUI:
             )
             self.option_menu_next_page_button_location_by.grid(padx=self.default_padx, pady=self.default_pady, sticky='nswe')
 
-            # Linha 14.
+            # Linha 13.
             self.frame_info_frame_buttons = tk.Frame(self.config_frame)
-            self.frame_info_frame_buttons.grid(row=14, column=1, padx=2)
+            self.frame_info_frame_buttons.grid(row=13, column=1, padx=2)
             self.frame_info_frame_buttons.columnconfigure(0, weight=1)
             self.info_frame_space = tk.Label(self.frame_info_frame_buttons, text='')
             self.info_frame_space.grid(row=0, column=0)
@@ -649,7 +631,7 @@ class GUI:
             self.button_reset.grid(row=0, column=1, ipadx=20, pady=5, sticky='nswe')
             command = partial(self.save_and_go_back)
             self.button_back = tk.Button(self.config_frame, text='Voltar', command=command)
-            self.button_back.grid(row=14, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
+            self.button_back.grid(row=13, column=2, ipadx=20, padx=self.default_padx, pady=5, sticky='nswe')
 
             # Adiciona a lista de widgets existentes.
             self.config_fields['manga_name'] = {
@@ -665,13 +647,6 @@ class GUI:
                 'border': self.border_final_dir,
                 'widget': self.entry_final_dir,
                 'var': self.var_final_dir
-            }
-            self.config_fields['download_dir'] = {
-                'display_frame': 'config_frame',
-                'warning_label': self.warning_label_download_dir,
-                'border': self.border_download_dir,
-                'widget': self.entry_download_dir,
-                'var': self.var_download_dir
             }
             self.config_fields['files_dir'] = {
                 'display_frame': 'config_frame',
@@ -811,7 +786,7 @@ class GUI:
             self.info_frame = tk.Frame(self.window)
             self.num_info_lines = 7
             self.info_frame_max_char_per_line = 50
-            self.dynamic_button_action = 'go_home'
+            self.dynamic_button_action = 'go_back'
             self.dynamic_button_text = 'Voltar'
 
             # Elementos.
@@ -1367,8 +1342,14 @@ class GUI:
         else:
             self.awaiting_function = 'delete_chapters'
             self.switch_frame(Frames.CONFIRMATION_FRAME)
+            num_files = len(self.chapters_files)
+            s_addition = 's' if num_files > 1 else ''
+            a_addition = 'ão' if num_files > 1 else 'á'
             self.display_confirmation_info(
-                'Exclusão de capítulos', ['Os arquivos serão excluídos permanentemente.', 'Deseja continuar?']
+                'Exclusão de capítulos', [
+                    f'Há {num_files} arquivo{s_addition}, que ser{a_addition} excluído{s_addition} permanentemente.',
+                    'Deseja continuar?'
+                ]
             )
 
     def display_loaded_config_set_name(self):
@@ -1386,12 +1367,8 @@ class GUI:
 
         # Conta o número de arquivos.
         num_files = len(self.chapters_files)
-        addition = ''
-        if num_files > 1:
-            addition = 's'
-        deletion_status = [
-            f'Exclusão de {num_files} capítulo{addition} realizada com sucesso!'
-        ]
+        s_addition = 's' if num_files > 1 else ''
+        deletion_status = [f'Exclusão de {num_files} capítulo{s_addition} realizada com sucesso!']
 
         # Limpa variável.
         self.chapters_files = []
@@ -1454,12 +1431,6 @@ class GUI:
             configs_and_warnings['final_dir'] = 'Informe a pasta de destino.'
         elif not self.system_ma.path_exist(self.config_ma.config_list['final_dir']):
             configs_and_warnings['final_dir'] = 'Informe uma pasta valida.'
-
-        # Pasta de padrão de download do navegador.
-        if not self.config_ma.config_list['download_dir']:
-            configs_and_warnings['download_dir'] = 'Informe a pasta de download do chrome.'
-        elif not self.system_ma.path_exist(self.config_ma.config_list['download_dir']):
-            configs_and_warnings['download_dir'] = 'Informe uma pasta valida.'
 
         # Pasta de edição de arquivos.
         if not self.config_ma.config_list['files_dir']:
@@ -1636,6 +1607,9 @@ class GUI:
         """
             Cancela função em espera.
         """
+        # Limpa função em espera.
+        self.awaiting_function = ''
+
         # Volta para o frame anterior.
         self.go_back()
 

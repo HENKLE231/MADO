@@ -4,12 +4,19 @@ from webdriver_manager.microsoft import EdgeChromiumDriverManager
 from selenium.webdriver.support.ui import Select
 import os
 
+
 class SeleniumManager:
-    def __init__(self):
+    def __init__(self, files_dir):
+        """
+            :param files_dir: Pasta onde serão editadas as imagens.
+        """
         self.service = EdgeService(EdgeChromiumDriverManager().install())
         self.options = None
         self.nav = None
         self.imgs_info = []
+        self.options = webdriver.EdgeOptions()
+        self.options.add_argument(r'download.default_directory={}'.format(files_dir))
+        self.options.add_experimental_option("prefs", {"download.default_directory": files_dir})
 
     def open_nav(self, page_load_strategy='normal', headless=False, size_and_position=None):
         """
@@ -20,9 +27,9 @@ class SeleniumManager:
             Abre o navegador automatizado.
         """
         # Configura opções.
-        self.options = webdriver.EdgeOptions()
         self.options.page_load_strategy = page_load_strategy
-        self.options.add_argument("inprivate")
+        self.options.add_argument('inprivate')
+        self.options.add_argument('mute-audio')
 
         # Define exibição.
         if headless:
@@ -34,7 +41,7 @@ class SeleniumManager:
                                       'Safari/537.36')
             self.options.add_argument('headless')
         else:
-            self.options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            self.options.add_experimental_option('excludeSwitches', ['enable-automation'])
             if size_and_position:
                 size_x, size_y, position_x, position_y = size_and_position
                 self.options.add_argument(r'window-size={},{}'.format(size_x, size_y))
@@ -139,7 +146,6 @@ class SeleniumManager:
             :return: (String) Link do próximo capítulo.
         """
         next_page_button = self.nav.find_element(next_page_button_location['by'], next_page_button_location['value'])
-        print('SeleniumManager.py get_next_page_link() next_page_button: {}'.format(next_page_button))
         return next_page_button.get_attribute('href')
 
     def execute_script(self, script):
@@ -166,9 +172,9 @@ class SeleniumManager:
         # Baixa a imagem.
         self.execute_script(download_script)
 
-    def get_percentage_of_downloaded_files(self, download_dir):
+    def get_percentage_of_downloaded_files(self, files_dir):
         """
-            :param download_dir: (String) Caminho para pasta de downloads.
+            :param files_dir: (String) Caminho onde serão baixados os arquivos.
             :return: (Float) Porcentagem de arquivos baixados.
             Informa procentagem de arquivos baixados e salva como baixadas.
         """
@@ -179,7 +185,7 @@ class SeleniumManager:
         # Verifica existência dos arquivos.
         for i, img_info in enumerate(self.imgs_info):
             img_name, link, downloaded = img_info
-            if os.path.isfile(os.path.join(download_dir, img_name)):
+            if os.path.isfile(os.path.join(files_dir, img_name)):
                 num_completed_downloads += 1
                 # Salva como baixado.
                 if not downloaded:

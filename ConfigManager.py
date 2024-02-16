@@ -41,7 +41,6 @@ class ConfigManager:
             'next_page_button_location_by': 'Selecione',
             'next_page_button_location_value': '',
             # Pastas.
-            'download_dir': str(Path(r'{}\Downloads'.format(system_ma.user_dir))),
             'files_dir': str(Path(r'{}\files'.format(system_ma.cwd))),
             'final_dir': '',
             # Arquivo de configuração
