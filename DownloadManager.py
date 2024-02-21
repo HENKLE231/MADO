@@ -110,6 +110,7 @@ class DownloadManager:
                     self.end_process(queue, error)
 
             # Obtem o número do capítulo
+            current_chapter = ''
             try:
                 current_chapter = selenium_ma.get_current_chapter(self.is_select, self.chapter_number_location)
             except Exception as error:

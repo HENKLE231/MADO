@@ -1449,10 +1449,12 @@ class GUI:
             configs_and_warnings['imgs_location_value'] = 'Informe um valor.'
 
         # Localização do botão de avançar para a próxima página.
-        if self.config_ma.config_list['next_page_button_location_by'] == 'Selecione':
-            configs_and_warnings['next_page_button_location_by'] = 'Selecione um identificador.'
-        if not self.config_ma.config_list['next_page_button_location_value']:
-            configs_and_warnings['next_page_button_location_value'] = 'Informe um valor.'
+        # Se mais de 1 capítulo for baixado.
+        if 'num_chapters' not in configs_and_warnings and int(self.config_ma.config_list['num_chapters']) > 1:
+            if self.config_ma.config_list['next_page_button_location_by'] == 'Selecione':
+                configs_and_warnings['next_page_button_location_by'] = 'Selecione um identificador.'
+            if not self.config_ma.config_list['next_page_button_location_value']:
+                configs_and_warnings['next_page_button_location_value'] = 'Informe um valor.'
 
         # Tira o destaque dos campos.
         self.unhighlight()
@@ -1482,6 +1484,7 @@ class GUI:
         # Exibe frame de informações.
         self.switch_frame(Frames.INFO_FRAME)
 
+        # Prepara processo de download para ser executado.
         self.download_process = Process(target=download_ma.download, args=(self.queue,))
 
         # Inicia download.
